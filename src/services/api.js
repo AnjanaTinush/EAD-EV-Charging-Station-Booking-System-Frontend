@@ -55,12 +55,21 @@ export const authAPI = {
 export const userAPI = {
   getAllUsers: async () => {
     const token = localStorage.getItem('token');
-    return fetchWithCORS(`${API_BASE_URL}/users`, {
+
+    const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Get users error:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
   },
 
   createUser: async (userData) => {
@@ -92,22 +101,52 @@ export const userAPI = {
 
   updateUser: async (userId, userData) => {
     const token = localStorage.getItem('token');
-    return fetchWithCORS(`${API_BASE_URL}/users/${userId}`, {
+    const payload = {
+      username: userData.username,
+      email: userData.email,
+      phone: userData.phone,
+      role: userData.role
+    };
+
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: 'PUT',
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(userData),
+      body: JSON.stringify(payload),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Update user error:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
   },
 
   deleteUser: async (userId) => {
     const token = localStorage.getItem('token');
-    return fetchWithCORS(`${API_BASE_URL}/users/${userId}`, {
+
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Delete user error:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    // DELETE might return empty response
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return response.json();
+    }
+    return { success: true };
   }
 };
