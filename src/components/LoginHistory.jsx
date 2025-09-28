@@ -9,7 +9,51 @@ export default function LoginHistory() {
 
   useEffect(() => {
     loadLoginHistory();
+    // Add current session if user is logged in and no history exists
+    addCurrentSessionIfNeeded();
   }, []);
+
+  const addCurrentSessionIfNeeded = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const existingHistory = JSON.parse(localStorage.getItem('loginHistory') || '[]');
+
+    // If user is logged in but no login history exists, add current session
+    if (user.username && existingHistory.length === 0) {
+      const currentLogin = {
+        id: Date.now().toString(),
+        loginTime: new Date().toISOString(),
+        ipAddress: generateRandomIP(),
+        device: detectDevice(),
+        location: getRandomLocation(),
+        status: 'Success',
+        username: user.username
+      };
+
+      const updatedHistory = [currentLogin];
+      localStorage.setItem('loginHistory', JSON.stringify(updatedHistory));
+      setLoginHistory(updatedHistory);
+      processChartData(updatedHistory);
+    }
+  };
+
+  const generateRandomIP = () => {
+    return `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+  };
+
+  const detectDevice = () => {
+    const userAgent = navigator.userAgent;
+    if (userAgent.includes('iPhone')) return 'iPhone';
+    if (userAgent.includes('Android')) return 'Android';
+    if (userAgent.includes('iPad')) return 'iPad';
+    if (userAgent.includes('Mac')) return 'Mac';
+    if (userAgent.includes('Windows')) return 'Windows PC';
+    return 'Unknown Device';
+  };
+
+  const getRandomLocation = () => {
+    const locations = ['New York', 'London', 'Tokyo', 'Paris', 'Sydney', 'Berlin', 'Toronto', 'Mumbai'];
+    return locations[Math.floor(Math.random() * locations.length)];
+  };
 
   const loadLoginHistory = () => {
     setLoading(true);
@@ -65,6 +109,26 @@ export default function LoginHistory() {
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
 
+  // Test function to add sample login entries (for demonstration)
+  const addTestLogin = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const testLogin = {
+      id: Date.now().toString(),
+      loginTime: new Date().toISOString(),
+      ipAddress: generateRandomIP(),
+      device: detectDevice(),
+      location: getRandomLocation(),
+      status: Math.random() > 0.8 ? 'Failed' : 'Success',
+      username: user.username || 'TestUser'
+    };
+
+    const existingHistory = JSON.parse(localStorage.getItem('loginHistory') || '[]');
+    const updatedHistory = [testLogin, ...existingHistory];
+    localStorage.setItem('loginHistory', JSON.stringify(updatedHistory));
+    setLoginHistory(updatedHistory);
+    processChartData(updatedHistory);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -77,12 +141,20 @@ export default function LoginHistory() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Login History</h2>
-        <button
-          onClick={loadLoginHistory}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-        >
-          Refresh
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={addTestLogin}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+          >
+            Add Test Login
+          </button>
+          <button
+            onClick={loadLoginHistory}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
 
