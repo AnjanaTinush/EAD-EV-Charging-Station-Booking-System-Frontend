@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://localhost:7179/api';
 
 const fetchWithCORS = async (url, options = {}) => {
   const defaultOptions = {
@@ -37,9 +37,17 @@ export const authAPI = {
   },
 
   register: async (userData) => {
+    const payload = {
+      username: userData.username,
+      email: userData.email,
+      phone: userData.phone,
+      password: userData.password,
+      role: userData.role || 'Customer'
+    };
+
     return fetchWithCORS(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
-      body: JSON.stringify(userData),
+      body: JSON.stringify(payload),
     });
   }
 };
