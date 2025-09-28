@@ -65,12 +65,19 @@ export const userAPI = {
 
   createUser: async (userData) => {
     const token = localStorage.getItem('token');
+    const payload = {
+      username: userData.username,
+      email: userData.email,
+      phone: userData.phone,
+      role: userData.role
+    };
+
     return fetchWithCORS(`${API_BASE_URL}/users`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(userData),
+      body: JSON.stringify(payload),
     });
   },
 

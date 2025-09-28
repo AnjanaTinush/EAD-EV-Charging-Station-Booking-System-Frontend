@@ -5,8 +5,7 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
     username: '',
     email: '',
     phone: '',
-    role: 'Customer',
-    password: ''
+    role: 'Customer'
   });
 
   useEffect(() => {
@@ -15,16 +14,14 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
         username: user.username || '',
         email: user.email || '',
         phone: user.phone || '',
-        role: user.role || 'Customer',
-        password: ''
+        role: user.role || 'Customer'
       });
     } else {
       setFormData({
         username: '',
         email: '',
         phone: '',
-        role: 'Customer',
-        password: ''
+        role: 'Customer'
       });
     }
   }, [user]);
@@ -120,22 +117,6 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
             </select>
           </div>
 
-          {!user && (
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required={!user}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-          )}
 
           <div className="flex justify-end space-x-3 pt-4">
             <button
