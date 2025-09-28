@@ -1,3 +1,139 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* EV Charging Station Theme Components */
+@layer components {
+  /* Primary button styles */
+  .btn-ev-primary {
+    @apply px-6 py-3 bg-ev-gradient text-white font-semibold rounded-xl shadow-ev-button hover:shadow-ev-glow transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-ev-primary-200;
+  }
+
+  .btn-ev-secondary {
+    @apply px-6 py-3 bg-white text-ev-primary-600 font-semibold rounded-xl border-2 border-ev-primary-500 hover:bg-ev-primary-50 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-ev-primary-200;
+  }
+
+  .btn-ev-danger {
+    @apply px-6 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transform hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-red-200;
+  }
+
+  /* Input field styles */
+  .ev-input {
+    @apply px-4 py-3 border-2 border-gray-200 rounded-xl bg-white shadow-sm hover:border-ev-primary-300 focus:border-ev-primary-500 focus:ring-4 focus:ring-ev-primary-100 transition-all duration-300;
+  }
+
+  /* Card styles */
+  .ev-card {
+    @apply bg-white rounded-2xl shadow-ev-card border border-gray-100 hover:shadow-xl transition-all duration-300;
+  }
+
+  .ev-card-gradient {
+    @apply bg-ev-gradient-light rounded-2xl shadow-ev-card border border-gray-100 hover:shadow-xl transition-all duration-300;
+  }
+
+  /* Text gradient styles */
+  .ev-gradient-text {
+    @apply bg-ev-gradient bg-clip-text text-transparent;
+  }
+
+  /* Status badges */
+  .ev-badge-success {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-ev-primary-100 text-ev-primary-800;
+  }
+
+  .ev-badge-warning {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-ev-accent-100 text-ev-accent-800;
+  }
+
+  .ev-badge-error {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800;
+  }
+
+  .ev-badge-info {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-ev-secondary-100 text-ev-secondary-800;
+  }
+
+  /* Charging animation */
+  .charging-animation {
+    animation: charging 2s ease-in-out infinite;
+  }
+
+  /* Energy flow animation for backgrounds */
+  .energy-flow {
+    background: linear-gradient(-45deg, #22c55e, #00bcd4, #3b82f6, #10b981);
+    background-size: 400% 400%;
+    animation: energyFlow 6s ease-in-out infinite;
+  }
+
+  /* Sidebar styles */
+  .ev-sidebar {
+    @apply bg-gradient-to-b from-ev-primary-800 to-ev-primary-900 text-white shadow-2xl;
+  }
+
+  .ev-sidebar-item {
+    @apply flex items-center px-6 py-3 hover:bg-ev-primary-700 transition-colors duration-200 cursor-pointer;
+  }
+
+  .ev-sidebar-item.active {
+    @apply bg-ev-primary-600 border-r-4 border-ev-accent-400;
+  }
+
+  /* Table styles */
+  .ev-table {
+    @apply w-full bg-white rounded-xl shadow-ev-card overflow-hidden;
+  }
+
+  .ev-table-header {
+    @apply bg-ev-gradient text-white font-semibold;
+  }
+
+  .ev-table-row {
+    @apply hover:bg-ev-primary-50 transition-colors duration-200;
+  }
+
+  /* Form styles */
+  .ev-form {
+    @apply space-y-6 p-8 bg-white rounded-2xl shadow-ev-card;
+  }
+
+  .ev-form-group {
+    @apply space-y-2;
+  }
+
+  .ev-label {
+    @apply block text-sm font-semibold text-gray-700;
+  }
+
+  /* Loading spinner */
+  .ev-spinner {
+    @apply animate-spin w-5 h-5 text-white;
+  }
+
+  /* Dashboard stats cards */
+  .ev-stat-card {
+    @apply ev-card p-6 hover:shadow-ev-glow transform hover:scale-105;
+  }
+
+  .ev-stat-icon {
+    @apply w-12 h-12 bg-ev-gradient rounded-xl flex items-center justify-center text-white mb-4;
+  }
+}
+
+/* Custom scrollbar for EV theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #10b981, #3b82f6);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #059669, #2563eb);
+}
