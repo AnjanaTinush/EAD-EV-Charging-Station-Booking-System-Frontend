@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { userAPI } from '../services/api';
 
 export default function LoginHistory() {
@@ -112,30 +111,42 @@ export default function LoginHistory() {
       {/* Login Activity Chart */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Login Activity (Last 14 Days)</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-              />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="logins"
-                stroke="#4f46e5"
-                strokeWidth={2}
-                dot={{ fill: '#4f46e5', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="h-64 bg-gray-50 rounded-lg p-4">
+          {chartData.length > 0 ? (
+            <div className="h-full flex items-end justify-between space-x-1">
+              {chartData.map((day, index) => {
+                const maxLogins = Math.max(...chartData.map(d => d.logins), 1);
+                const height = (day.logins / maxLogins) * 100;
+
+                return (
+                  <div key={index} className="flex flex-col items-center flex-1">
+                    <div className="flex flex-col items-center justify-end h-48 w-full">
+                      <div
+                        className="bg-indigo-600 rounded-t-sm w-full min-h-[4px] transition-all duration-300 hover:bg-indigo-700 relative group"
+                        style={{ height: `${height}%` }}
+                      >
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                          {day.logins} login{day.logins !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-left">
+                      {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center text-gray-500">
+              No data available for chart
+            </div>
+          )}
+        </div>
+        <div className="mt-4 flex items-center text-sm text-gray-600">
+          <div className="w-3 h-3 bg-indigo-600 rounded-sm mr-2"></div>
+          <span>Daily Login Count</span>
         </div>
       </div>
 
