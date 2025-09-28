@@ -72,13 +72,22 @@ export const userAPI = {
       role: userData.role
     };
 
-    return fetchWithCORS(`${API_BASE_URL}/users`, {
+    const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Create user error:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
   },
 
   updateUser: async (userId, userData) => {
