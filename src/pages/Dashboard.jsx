@@ -45,7 +45,7 @@ export default function Dashboard() {
   const handleSaveProfile = async () => {
     try {
       setProfileError('');
-      const updatedUser = await userAPI.updateProfile(profileData);
+      const updatedUser = await userAPI.updateProfile(user.id, profileData);
 
       // Update local storage and state
       const newUserData = { ...user, ...profileData };

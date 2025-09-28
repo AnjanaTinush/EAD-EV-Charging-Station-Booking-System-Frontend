@@ -150,7 +150,7 @@ export const userAPI = {
     return { success: true };
   },
 
-  updateProfile: async (userData) => {
+  updateProfile: async (userId, userData) => {
     const token = localStorage.getItem('token');
     const payload = {
       username: userData.username,
@@ -159,7 +159,7 @@ export const userAPI = {
       role: userData.role
     };
 
-    const response = await fetch(`${API_BASE_URL}/users/profile`, {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
