@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
+import UserManagement from '../components/UserManagement';
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -48,6 +49,8 @@ export default function Dashboard() {
             <p className="text-gray-600">View and manage your charging station bookings.</p>
           </div>
         );
+      case 'users':
+        return <UserManagement />;
       case 'profile':
         return (
           <div className="bg-white rounded-lg shadow p-6">

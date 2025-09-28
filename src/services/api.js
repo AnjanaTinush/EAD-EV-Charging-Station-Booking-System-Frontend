@@ -51,3 +51,47 @@ export const authAPI = {
     });
   }
 };
+
+export const userAPI = {
+  getAllUsers: async () => {
+    const token = localStorage.getItem('token');
+    return fetchWithCORS(`${API_BASE_URL}/users`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  },
+
+  createUser: async (userData) => {
+    const token = localStorage.getItem('token');
+    return fetchWithCORS(`${API_BASE_URL}/users`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(userData),
+    });
+  },
+
+  updateUser: async (userId, userData) => {
+    const token = localStorage.getItem('token');
+    return fetchWithCORS(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(userData),
+    });
+  },
+
+  deleteUser: async (userId) => {
+    const token = localStorage.getItem('token');
+    return fetchWithCORS(`${API_BASE_URL}/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+};

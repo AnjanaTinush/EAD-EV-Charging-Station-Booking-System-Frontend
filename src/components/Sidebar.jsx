@@ -14,6 +14,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'stations', label: 'Charging Stations', icon: '🔌' },
     { id: 'bookings', label: 'My Bookings', icon: '📅' },
+    { id: 'users', label: 'User Management', icon: '👥' },
     { id: 'profile', label: 'Profile', icon: '👤' },
     { id: 'settings', label: 'Settings', icon: '⚙️' }
   ];
