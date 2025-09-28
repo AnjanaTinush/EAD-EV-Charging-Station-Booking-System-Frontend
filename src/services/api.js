@@ -148,5 +148,32 @@ export const userAPI = {
       return response.json();
     }
     return { success: true };
+  },
+
+  updateProfile: async (userData) => {
+    const token = localStorage.getItem('token');
+    const payload = {
+      username: userData.username,
+      email: userData.email,
+      phone: userData.phone,
+      role: userData.role
+    };
+
+    const response = await fetch(`${API_BASE_URL}/users/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Update profile error:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
   }
 };
