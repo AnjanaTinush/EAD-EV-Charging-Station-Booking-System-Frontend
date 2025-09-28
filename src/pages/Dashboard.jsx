@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import UserManagement from '../components/UserManagement';
+import LoginHistory from '../components/LoginHistory';
 import { userAPI } from '../services/api';
 
 export default function Dashboard() {
@@ -107,6 +108,8 @@ export default function Dashboard() {
         );
       case 'users':
         return <UserManagement />;
+      case 'loginHistory':
+        return <LoginHistory />;
       case 'profile':
         return (
           <div className="bg-white rounded-lg shadow p-6">

@@ -175,5 +175,24 @@ export const userAPI = {
     }
 
     return response.json();
+  },
+
+  getLoginHistory: async () => {
+    const token = localStorage.getItem('token');
+
+    const response = await fetch(`${API_BASE_URL}/auth/login-history`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Get login history error:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response.json();
   }
 };
