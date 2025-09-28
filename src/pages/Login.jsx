@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { trackLogin } from '../utils/loginTracker';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -28,8 +29,15 @@ export default function Login() {
       const result = await authAPI.login(formData.email, formData.password);
       localStorage.setItem('token', result.token);
       localStorage.setItem('user', JSON.stringify(result.user));
+
+      // Track successful login
+      trackLogin('Success', result.user.username);
+
       navigate('/dashboard');
     } catch (err) {
+      // Track failed login attempt
+      trackLogin('Failed', formData.email);
+
       setError(err.message);
     } finally {
       setIsLoading(false);

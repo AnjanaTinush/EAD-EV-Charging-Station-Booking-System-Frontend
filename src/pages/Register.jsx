@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { trackLogin } from '../utils/loginTracker';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -39,6 +40,10 @@ export default function Register() {
       const result = await authAPI.register(userData);
       localStorage.setItem('token', result.token);
       localStorage.setItem('user', JSON.stringify(result.user));
+
+      // Track successful registration (as a login)
+      trackLogin('Success', result.user.username);
+
       navigate('/dashboard');
     } catch (err) {
       setError(err.message);

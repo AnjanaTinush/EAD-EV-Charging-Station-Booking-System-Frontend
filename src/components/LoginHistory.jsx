@@ -1,35 +1,33 @@
 import { useState, useEffect } from 'react';
-import { userAPI } from '../services/api';
 
 export default function LoginHistory() {
   const [loginHistory, setLoginHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    fetchLoginHistory();
+    loadLoginHistory();
   }, []);
 
-  const fetchLoginHistory = async () => {
-    try {
-      setLoading(true);
-      const response = await userAPI.getLoginHistory();
-      const history = response.loginHistory || response || [];
-      setLoginHistory(history);
-      processChartData(history);
-    } catch (err) {
-      setError('Failed to fetch login history: ' + err.message);
-      // Mock data for development
-      const mockData = generateMockData();
-      setLoginHistory(mockData);
-      processChartData(mockData);
-    } finally {
-      setLoading(false);
+  const loadLoginHistory = () => {
+    setLoading(true);
+
+    // Get existing login history from localStorage
+    const storedHistory = localStorage.getItem('loginHistory');
+    let history = storedHistory ? JSON.parse(storedHistory) : [];
+
+    // If no history exists, generate some initial mock data
+    if (history.length === 0) {
+      history = generateInitialMockData();
+      localStorage.setItem('loginHistory', JSON.stringify(history));
     }
+
+    setLoginHistory(history);
+    processChartData(history);
+    setLoading(false);
   };
 
-  const generateMockData = () => {
+  const generateInitialMockData = () => {
     const mockData = [];
     const currentDate = new Date();
 
@@ -57,6 +55,46 @@ export default function LoginHistory() {
     }
 
     return mockData.sort((a, b) => new Date(b.loginTime) - new Date(a.loginTime));
+  };
+
+  // Add new login entry (called from login process)
+  const addLoginEntry = (status = 'Success') => {
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const newLogin = {
+      id: Date.now().toString(),
+      loginTime: new Date().toISOString(),
+      ipAddress: generateRandomIP(),
+      device: detectDevice(),
+      location: getRandomLocation(),
+      status: status,
+      username: currentUser.username || 'Unknown'
+    };
+
+    const existingHistory = JSON.parse(localStorage.getItem('loginHistory') || '[]');
+    const updatedHistory = [newLogin, ...existingHistory].slice(0, 100); // Keep last 100 entries
+
+    localStorage.setItem('loginHistory', JSON.stringify(updatedHistory));
+    setLoginHistory(updatedHistory);
+    processChartData(updatedHistory);
+  };
+
+  const generateRandomIP = () => {
+    return `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+  };
+
+  const detectDevice = () => {
+    const userAgent = navigator.userAgent;
+    if (userAgent.includes('iPhone')) return 'iPhone';
+    if (userAgent.includes('Android')) return 'Android';
+    if (userAgent.includes('iPad')) return 'iPad';
+    if (userAgent.includes('Mac')) return 'Mac';
+    if (userAgent.includes('Windows')) return 'Windows PC';
+    return 'Unknown Device';
+  };
+
+  const getRandomLocation = () => {
+    const locations = ['New York', 'London', 'Tokyo', 'Paris', 'Sydney', 'Berlin', 'Toronto', 'Mumbai'];
+    return locations[Math.floor(Math.random() * locations.length)];
   };
 
   const processChartData = (history) => {
@@ -95,18 +133,13 @@ export default function LoginHistory() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Login History</h2>
         <button
-          onClick={fetchLoginHistory}
+          onClick={loadLoginHistory}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
         >
           Refresh
         </button>
       </div>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
 
       {/* Login Activity Chart */}
       <div className="bg-white rounded-lg shadow p-6">
