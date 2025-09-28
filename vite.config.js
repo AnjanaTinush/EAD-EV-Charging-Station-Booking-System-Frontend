@@ -9,16 +9,17 @@ export default defineConfig({
       '/api': {
         target: 'https://localhost:7179',
         changeOrigin: true,
-        secure: false, // Allow self-signed certificates
-        configure: (proxy, options) => {
+        secure: false,
+        rewrite: (path) => path,
+        configure: (proxy) => {
           proxy.on('error', (err, req, res) => {
-            console.log('proxy error', err);
+            console.log('🔥 Proxy error:', err.message);
           });
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
+          proxy.on('proxyReq', (proxyReq, req) => {
+            console.log('🚀 Proxying:', req.method, req.url, '→', proxyReq.getHeader('host') + proxyReq.path);
           });
-          proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+          proxy.on('proxyRes', (proxyRes, req) => {
+            console.log('✅ Response:', proxyRes.statusCode, req.url);
           });
         },
       }
