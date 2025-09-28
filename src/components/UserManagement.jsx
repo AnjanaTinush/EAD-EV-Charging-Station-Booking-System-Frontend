@@ -5,16 +5,55 @@ import ConfirmDialog from './ConfirmDialog';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All');
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    filterUsers();
+  }, [users, searchTerm, roleFilter]);
+
+  const filterUsers = () => {
+    let filtered = users;
+
+    // Filter by search term (username or email)
+    if (searchTerm) {
+      filtered = filtered.filter(user =>
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by role
+    if (roleFilter !== 'All') {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    setFilteredUsers(filtered);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleRoleFilterChange = (e) => {
+    setRoleFilter(e.target.value);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setRoleFilter('All');
+  };
 
   const fetchUsers = async () => {
     try {
@@ -52,9 +91,10 @@ export default function UserManagement() {
     try {
       if (selectedUser) {
         await userAPI.updateUser(selectedUser.id, userData);
-        setUsers(users.map(user =>
+        const updatedUsers = users.map(user =>
           user.id === selectedUser.id ? { ...user, ...userData } : user
-        ));
+        );
+        setUsers(updatedUsers);
       } else {
         const newUser = await userAPI.createUser(userData);
         setUsers([...users, newUser]);
@@ -97,6 +137,54 @@ export default function UserManagement() {
         </button>
       </div>
 
+      {/* Search and Filter Section */}
+      <div className="bg-white p-4 rounded-lg shadow border">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="md:col-span-2">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              Search Users
+            </label>
+            <input
+              type="text"
+              id="search"
+              placeholder="Search by username or email..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="roleFilter" className="block text-sm font-medium text-gray-700 mb-1">
+              Filter by Role
+            </label>
+            <select
+              id="roleFilter"
+              value={roleFilter}
+              onChange={handleRoleFilterChange}
+              className="w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="All">All Roles</option>
+              <option value="Customer">Customer</option>
+              <option value="Backoffice">Backoffice</option>
+            </select>
+          </div>
+
+          <div>
+            <button
+              onClick={clearFilters}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium border border-gray-300"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-3 text-sm text-gray-600">
+          Showing {filteredUsers.length} of {users.length} users
+        </div>
+      </div>
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
@@ -126,7 +214,7 @@ export default function UserManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {user.username}
@@ -165,6 +253,12 @@ export default function UserManagement() {
             </tbody>
           </table>
         </div>
+
+        {filteredUsers.length === 0 && users.length > 0 && (
+          <div className="text-center py-8 text-gray-500">
+            No users match your search criteria. Try adjusting your filters.
+          </div>
+        )}
 
         {users.length === 0 && (
           <div className="text-center py-8 text-gray-500">
