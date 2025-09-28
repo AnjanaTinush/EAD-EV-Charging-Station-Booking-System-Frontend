@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://localhost:7179/api';
+const API_BASE_URL = '/api';
 
 const fetchWithCORS = async (url, options = {}) => {
   const defaultOptions = {
