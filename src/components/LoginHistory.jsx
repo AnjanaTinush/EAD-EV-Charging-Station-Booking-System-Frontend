@@ -4,6 +4,8 @@ export default function LoginHistory() {
   const [loginHistory, setLoginHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     loadLoginHistory();
@@ -12,90 +14,15 @@ export default function LoginHistory() {
   const loadLoginHistory = () => {
     setLoading(true);
 
-    // Get existing login history from localStorage
+    // Get existing login history from localStorage (actual data only)
     const storedHistory = localStorage.getItem('loginHistory');
-    let history = storedHistory ? JSON.parse(storedHistory) : [];
-
-    // If no history exists, generate some initial mock data
-    if (history.length === 0) {
-      history = generateInitialMockData();
-      localStorage.setItem('loginHistory', JSON.stringify(history));
-    }
+    const history = storedHistory ? JSON.parse(storedHistory) : [];
 
     setLoginHistory(history);
     processChartData(history);
     setLoading(false);
   };
 
-  const generateInitialMockData = () => {
-    const mockData = [];
-    const currentDate = new Date();
-
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(currentDate);
-      date.setDate(date.getDate() - i);
-
-      // Random number of logins per day (0-5)
-      const loginCount = Math.floor(Math.random() * 6);
-
-      for (let j = 0; j < loginCount; j++) {
-        const loginTime = new Date(date);
-        loginTime.setHours(Math.floor(Math.random() * 24));
-        loginTime.setMinutes(Math.floor(Math.random() * 60));
-
-        mockData.push({
-          id: `${i}-${j}`,
-          loginTime: loginTime.toISOString(),
-          ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
-          device: ['Windows PC', 'iPhone', 'Android', 'Mac', 'iPad'][Math.floor(Math.random() * 5)],
-          location: ['New York', 'London', 'Tokyo', 'Paris', 'Sydney'][Math.floor(Math.random() * 5)],
-          status: Math.random() > 0.1 ? 'Success' : 'Failed'
-        });
-      }
-    }
-
-    return mockData.sort((a, b) => new Date(b.loginTime) - new Date(a.loginTime));
-  };
-
-  // Add new login entry (called from login process)
-  const addLoginEntry = (status = 'Success') => {
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const newLogin = {
-      id: Date.now().toString(),
-      loginTime: new Date().toISOString(),
-      ipAddress: generateRandomIP(),
-      device: detectDevice(),
-      location: getRandomLocation(),
-      status: status,
-      username: currentUser.username || 'Unknown'
-    };
-
-    const existingHistory = JSON.parse(localStorage.getItem('loginHistory') || '[]');
-    const updatedHistory = [newLogin, ...existingHistory].slice(0, 100); // Keep last 100 entries
-
-    localStorage.setItem('loginHistory', JSON.stringify(updatedHistory));
-    setLoginHistory(updatedHistory);
-    processChartData(updatedHistory);
-  };
-
-  const generateRandomIP = () => {
-    return `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
-  };
-
-  const detectDevice = () => {
-    const userAgent = navigator.userAgent;
-    if (userAgent.includes('iPhone')) return 'iPhone';
-    if (userAgent.includes('Android')) return 'Android';
-    if (userAgent.includes('iPad')) return 'iPad';
-    if (userAgent.includes('Mac')) return 'Mac';
-    if (userAgent.includes('Windows')) return 'Windows PC';
-    return 'Unknown Device';
-  };
-
-  const getRandomLocation = () => {
-    const locations = ['New York', 'London', 'Tokyo', 'Paris', 'Sydney', 'Berlin', 'Toronto', 'Mumbai'];
-    return locations[Math.floor(Math.random() * locations.length)];
-  };
 
   const processChartData = (history) => {
     const loginsByDate = {};
@@ -118,6 +45,24 @@ export default function LoginHistory() {
 
   const formatDateTime = (dateString) => {
     return new Date(dateString).toLocaleString();
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(loginHistory.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = loginHistory.slice(startIndex, endIndex);
+
+  const goToPage = (page) => {
+    setCurrentPage(page);
+  };
+
+  const goToPrevious = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const goToNext = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
 
   if (loading) {
@@ -172,8 +117,12 @@ export default function LoginHistory() {
               })}
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-500">
-              No data available for chart
+            <div className="h-full flex flex-col items-center justify-center text-gray-500">
+              <div className="text-4xl mb-2">📊</div>
+              <div className="text-center">
+                <p className="font-medium">No login data available</p>
+                <p className="text-sm">Chart will appear after you log in</p>
+              </div>
             </div>
           )}
         </div>
@@ -186,9 +135,9 @@ export default function LoginHistory() {
       {/* Login History Table */}
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg font-medium text-gray-900">Recent Login Attempts</h3>
+          <h3 className="text-lg font-medium text-gray-900">Login History</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Your recent login activity and security information
+            Your login activity and security information ({loginHistory.length} total entries)
           </p>
         </div>
 
@@ -214,7 +163,7 @@ export default function LoginHistory() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {loginHistory.slice(0, 20).map((login) => (
+              {currentItems.map((login) => (
                 <tr key={login.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {formatDateTime(login.loginTime)}
@@ -245,7 +194,68 @@ export default function LoginHistory() {
 
         {loginHistory.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            No login history found.
+            No login history found. Your login attempts will appear here.
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {loginHistory.length > 0 && totalPages > 1 && (
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+                  <span className="font-medium">{Math.min(endIndex, loginHistory.length)}</span> of{' '}
+                  <span className="font-medium">{loginHistory.length}</span> results
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={goToPrevious}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+
+                <div className="flex space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNumber;
+                    if (totalPages <= 5) {
+                      pageNumber = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNumber = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNumber = totalPages - 4 + i;
+                    } else {
+                      pageNumber = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => goToPage(pageNumber)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === pageNumber
+                            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={goToNext}
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
