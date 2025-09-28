@@ -4,12 +4,38 @@ export default function LoginHistory() {
   const [loginHistory, setLoginHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState([]);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     loadLoginHistory();
     // Add current session if user is logged in and no history exists
     addCurrentSessionIfNeeded();
   }, []);
+
+  // Continuous time update
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000); // Update every second
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Continuous login history refresh
+  useEffect(() => {
+    const refreshTimer = setInterval(() => {
+      // Reload login history every 5 seconds to catch new logins
+      const storedHistory = localStorage.getItem('loginHistory');
+      const history = storedHistory ? JSON.parse(storedHistory) : [];
+
+      if (JSON.stringify(history) !== JSON.stringify(loginHistory)) {
+        setLoginHistory(history);
+        processChartData(history);
+      }
+    }, 5000); // Refresh every 5 seconds
+
+    return () => clearInterval(refreshTimer);
+  }, [loginHistory]);
 
   const addCurrentSessionIfNeeded = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -106,6 +132,19 @@ export default function LoginHistory() {
   // Get latest 5 login entries
   const latestLogins = loginHistory.slice(0, 5);
 
+  // Filter today's logins
+  const getTodaysLogins = () => {
+    const today = new Date();
+    const todayStr = today.toDateString();
+
+    return loginHistory.filter(login => {
+      const loginDate = new Date(login.loginTime);
+      return loginDate.toDateString() === todayStr;
+    });
+  };
+
+  const todaysLogins = getTodaysLogins();
+
   // Test function to add sample login entries (for demonstration)
   const addTestLogin = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -137,7 +176,7 @@ export default function LoginHistory() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Recent Login History</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Login History</h2>
         <div className="flex space-x-2">
           <button
             onClick={addTestLogin}
@@ -151,6 +190,100 @@ export default function LoginHistory() {
           >
             Refresh
           </button>
+        </div>
+      </div>
+
+      {/* Today's Login Activity - Real-time Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg overflow-hidden sm:rounded-lg border-l-4 border-blue-500">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">Today's Login Activity</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Live tracking of today's login attempts ({todaysLogins.length} total)
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="flex items-center justify-end space-x-2 mb-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <p className="text-xs text-green-600 font-medium">LIVE</p>
+              </div>
+              <p className="text-sm text-gray-500">Current Time</p>
+              <p className="text-lg font-mono font-semibold text-blue-600">
+                {currentTime.toLocaleTimeString()}
+              </p>
+              <p className="text-xs text-gray-400">
+                {currentTime.toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {todaysLogins.length > 0 ? (
+            <div className="space-y-4">
+              {/* Today's Statistics */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <p className="text-sm font-medium text-gray-600">Total Today</p>
+                  <p className="text-2xl font-bold text-blue-600">{todaysLogins.length}</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <p className="text-sm font-medium text-gray-600">Successful</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {todaysLogins.filter(login => login.status === 'Success').length}
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <p className="text-sm font-medium text-gray-600">Failed</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {todaysLogins.filter(login => login.status === 'Failed').length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Today's Login List */}
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="px-4 py-2 bg-gray-50 border-b">
+                  <h4 className="font-medium text-gray-900">Recent Activity Today</h4>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {todaysLogins.slice(0, 10).map((login, index) => (
+                    <div key={login.id} className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 ${index === 0 ? 'bg-blue-50' : ''}`}>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          {index === 0 && <span className="text-blue-500">🔥</span>}
+                          <div>
+                            <p className="font-medium text-gray-900">{login.username}</p>
+                            <p className="text-xs text-gray-500">{login.device} • {login.location}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-900">{formatDateTime(login.loginTime)}</p>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            login.status === 'Success'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {login.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-4">📅</div>
+              <div className="text-center">
+                <p className="text-lg font-medium">No logins today yet</p>
+                <p className="text-sm">Login activity will appear here in real-time</p>
+                <p className="text-xs mt-2">Click "Add Test Login" to simulate activity</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
