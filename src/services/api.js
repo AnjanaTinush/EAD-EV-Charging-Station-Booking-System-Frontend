@@ -1,4 +1,5 @@
-const API_BASE_URL = '/api';
+// Use environment variable or fallback to proxy path
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const fetchWithCORS = async (url, options = {}) => {
   const defaultOptions = {
