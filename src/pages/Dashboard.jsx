@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import UserManagement from '../components/UserManagement';
 import LoginHistory from '../components/LoginHistory';
-import { userAPI } from '../services/api';
+import StationManagement from '../components/StationManagement';
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -46,7 +46,6 @@ export default function Dashboard() {
   const handleSaveProfile = async () => {
     try {
       setProfileError('');
-      const updatedUser = await userAPI.updateProfile(user.id, profileData);
 
       // Update local storage and state
       const newUserData = { ...user, ...profileData };
@@ -124,20 +123,7 @@ export default function Dashboard() {
           </div>
         );
       case 'stations':
-        return (
-          <div className="ev-card p-8">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-ev-gradient rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                  <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-              </div>
-              <h2 className="text-3xl font-bold ev-gradient-text">Charging Stations</h2>
-            </div>
-            <p className="text-gray-600 text-lg">Find and book charging stations near you.</p>
-          </div>
-        );
+        return <StationManagement />;
       case 'bookings':
         return (
           <div className="ev-card p-8">
