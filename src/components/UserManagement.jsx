@@ -17,6 +17,23 @@ export default function UserManagement() {
   const { showSuccess, showError } = useToast();
   const { showConfirmation, ConfirmationComponent } = useConfirmation();
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await userAPI.getAllUsers();
+      setUsers(response.users || response || []);
+    } catch (err) {
+      showError('Failed to fetch users: ' + err.message);
+      setUsers([
+        { id: 1, username: 'john_doe', email: 'john@example.com', phone: '123-456-7890', role: 'Customer' },
+        { id: 2, username: 'jane_admin', email: 'jane@example.com', phone: '098-765-4321', role: 'Backoffice' },
+        { id: 3, username: 'bob_user', email: 'bob@example.com', phone: '555-123-4567', role: 'Customer' }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, [showError]);
+
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
@@ -56,23 +73,6 @@ export default function UserManagement() {
     setSearchTerm('');
     setRoleFilter('All');
   };
-
-  const fetchUsers = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await userAPI.getAllUsers();
-      setUsers(response.users || response || []);
-    } catch (err) {
-      showError('Failed to fetch users: ' + err.message);
-      setUsers([
-        { id: 1, username: 'john_doe', email: 'john@example.com', phone: '123-456-7890', role: 'Customer' },
-        { id: 2, username: 'jane_admin', email: 'jane@example.com', phone: '098-765-4321', role: 'Backoffice' },
-        { id: 3, username: 'bob_user', email: 'bob@example.com', phone: '555-123-4567', role: 'Customer' }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  }, [showError]);
 
   const handleCreateUser = () => {
     setSelectedUser(null);
