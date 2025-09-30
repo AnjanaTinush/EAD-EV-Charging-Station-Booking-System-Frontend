@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { userAPI } from '../services/api';
 import UserModal from './UserModal';
-import { useConfirmation } from '../hooks/useConfirmation';
+import { useConfirmation } from '../hooks/useConfirmation.jsx';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
 
