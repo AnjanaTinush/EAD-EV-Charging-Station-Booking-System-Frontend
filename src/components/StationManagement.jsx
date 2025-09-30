@@ -6,7 +6,7 @@ import StationForm from "./stations/StationForm";
 import StationStats from "./stations/StationStats";
 import Toast from "./Toast";
 import { useToast } from "../hooks/useToast";
-import { useConfirmation } from "../hooks/useConfirmation";
+import { useConfirmation } from "../hooks/useConfirmation.jsx";
 
 export default function StationManagement() {
   const [stations, setStations] = useState([]);
