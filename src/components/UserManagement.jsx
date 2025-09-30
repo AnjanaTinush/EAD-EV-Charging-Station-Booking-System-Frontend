@@ -1,29 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { userAPI } from '../services/api';
 import UserModal from './UserModal';
-import ConfirmDialog from './ConfirmDialog';
+import { useConfirmation } from '../hooks/useConfirmation';
+import { useToast } from '../hooks/useToast';
+import Toast from './Toast';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [userToDelete, setUserToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
+  
+  const { showSuccess, showError } = useToast();
+  const { showConfirmation, ConfirmationComponent } = useConfirmation();
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
-  useEffect(() => {
-    filterUsers();
-  }, [users, searchTerm, roleFilter]);
-
-  const filterUsers = () => {
+  const filterUsers = useCallback(() => {
     let filtered = users;
 
     // Filter by search term (username or email)
@@ -40,7 +38,11 @@ export default function UserManagement() {
     }
 
     setFilteredUsers(filtered);
-  };
+  }, [users, searchTerm, roleFilter]);
+
+  useEffect(() => {
+    filterUsers();
+  }, [filterUsers]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -55,13 +57,13 @@ export default function UserManagement() {
     setRoleFilter('All');
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await userAPI.getAllUsers();
       setUsers(response.users || response || []);
     } catch (err) {
-      setError('Failed to fetch users: ' + err.message);
+      showError('Failed to fetch users: ' + err.message);
       setUsers([
         { id: 1, username: 'john_doe', email: 'john@example.com', phone: '123-456-7890', role: 'Customer' },
         { id: 2, username: 'jane_admin', email: 'jane@example.com', phone: '098-765-4321', role: 'Backoffice' },
@@ -70,7 +72,7 @@ export default function UserManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError]);
 
   const handleCreateUser = () => {
     setSelectedUser(null);
@@ -82,9 +84,23 @@ export default function UserManagement() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (user) => {
-    setUserToDelete(user);
-    setIsConfirmOpen(true);
+  const handleDeleteUser = async (user) => {
+    const confirmed = await showConfirmation({
+      title: 'Delete User',
+      message: `Are you sure you want to delete "${user.username}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      confirmButtonClass: 'bg-red-500 hover:bg-red-600'
+    });
+
+    if (confirmed) {
+      try {
+        await userAPI.deleteUser(user.id);
+        setUsers(users.filter(u => u.id !== user.id));
+        showSuccess(`User "${user.username}" deleted successfully`);
+      } catch (err) {
+        showError('Failed to delete user: ' + err.message);
+      }
+    }
   };
 
   const handleSaveUser = async (userData) => {
@@ -99,21 +115,9 @@ export default function UserManagement() {
         const newUser = await userAPI.createUser(userData);
         setUsers([...users, newUser]);
       }
-      setError('');
+      showSuccess(`User ${selectedUser ? 'updated' : 'created'} successfully`);
     } catch (err) {
-      setError('Failed to save user: ' + err.message);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    try {
-      await userAPI.deleteUser(userToDelete.id);
-      setUsers(users.filter(user => user.id !== userToDelete.id));
-      setIsConfirmOpen(false);
-      setUserToDelete(null);
-      setError('');
-    } catch (err) {
-      setError('Failed to delete user: ' + err.message);
+      showError('Failed to save user: ' + err.message);
     }
   };
 
@@ -184,12 +188,6 @@ export default function UserManagement() {
           Showing {filteredUsers.length} of {users.length} users
         </div>
       </div>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <div className="overflow-x-auto">
@@ -275,13 +273,7 @@ export default function UserManagement() {
         title={selectedUser ? 'Edit User' : 'Create New User'}
       />
 
-      <ConfirmDialog
-        isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Delete User"
-        message={`Are you sure you want to delete ${userToDelete?.username}? This action cannot be undone.`}
-      />
+      <Toast />
     </div>
   );
 }
