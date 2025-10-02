@@ -5,6 +5,8 @@ import BookingForm from "./bookings/BookingForm";
 import BookingDetailsModal from "./bookings/BookingDetailsModal";
 import BookingTable from "./bookings/BookingTable";
 import BookingStatus from "./bookings/BookingStatus";
+import CancelBookingModal from "./bookings/CancelBookingModal";
+import ErrorModal from "./ErrorModal";
 
 const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
@@ -15,7 +17,13 @@ const BookingManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [cancelBookingId, setCancelBookingId] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [errorModal, setErrorModal] = useState({ show: false, message: "" });
   const { showToast } = useToast();
+
+  const showErrorModal = (msg) => setErrorModal({ show: true, message: msg });
+  const closeErrorModal = () => setErrorModal({ show: false, message: "" });
 
   const fetchAllBookings = useCallback(async () => {
     try {
@@ -26,6 +34,7 @@ const BookingManagement = () => {
     } catch (err) {
       setError(err.message);
       showToast(err.message, "error");
+      showErrorModal(err.message);
     } finally {
       setLoading(false);
     }
@@ -37,6 +46,11 @@ const BookingManagement = () => {
   }, [fetchAllBookings]);
 
   const handleStatusChange = async (bookingId, newStatus) => {
+    if (newStatus === "Cancelled") {
+      setCancelBookingId(bookingId);
+      setShowCancelModal(true);
+      return;
+    }
     try {
       if (newStatus === "Approved") {
         await bookingService.approveBooking(bookingId);
@@ -44,11 +58,30 @@ const BookingManagement = () => {
         await bookingService.updateBookingStatus(bookingId, newStatus);
       }
       showToast(`Booking ${newStatus.toLowerCase()} successfully`, "success");
-      // Refresh bookings
       fetchAllBookings();
     } catch (err) {
       showToast(err.message, "error");
+      showErrorModal(err.message);
     }
+  };
+
+  const handleConfirmCancel = async (reason) => {
+    try {
+      await bookingService.cancelBooking(cancelBookingId, reason);
+      showToast("Booking cancelled successfully", "success");
+      fetchAllBookings();
+    } catch (err) {
+      showToast(err.message, "error");
+      showErrorModal(err.message);
+    } finally {
+      setShowCancelModal(false);
+      setCancelBookingId(null);
+    }
+  };
+
+  const handleCancelModalClose = () => {
+    setShowCancelModal(false);
+    setCancelBookingId(null);
   };
 
   const handleDeleteBooking = async (bookingId) => {
@@ -63,6 +96,7 @@ const BookingManagement = () => {
       fetchAllBookings();
     } catch (err) {
       showToast(err.message, "error");
+      showErrorModal(err.message);
     }
   };
 
@@ -118,7 +152,7 @@ const BookingManagement = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-32 h-32 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -142,6 +176,11 @@ const BookingManagement = () => {
             Retry
           </button>
         </div>
+      )}
+
+      {/* Error Modal */}
+      {errorModal.show && (
+        <ErrorModal message={errorModal.message} onClose={closeErrorModal} />
       )}
 
       {/* Filters and Search */}
@@ -208,6 +247,14 @@ const BookingManagement = () => {
         <BookingDetailsModal
           booking={selectedBooking}
           onClose={handleCloseModal}
+        />
+      )}
+
+      {/* Cancel Booking Modal */}
+      {showCancelModal && (
+        <CancelBookingModal
+          onConfirm={handleConfirmCancel}
+          onClose={handleCancelModalClose}
         />
       )}
     </div>

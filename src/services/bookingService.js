@@ -189,16 +189,25 @@ export const bookingService = {
   },
 
   /**
-   * Cancel a booking
+   * Cancel a booking with reason
    * @param {string} bookingId - The booking ID
+   * @param {string} reason - Reason for cancellation
    * @returns {Promise<Object>} Updated booking object
    */
-  cancelBooking: async (bookingId) => {
+  cancelBooking: async (bookingId, reason) => {
     try {
-      return await bookingService.updateBookingStatus(bookingId, "Cancelled");
+      if (!bookingId) throw new Error("Booking ID is required");
+      if (!reason) throw new Error("Cancellation reason is required");
+      const response = await apiService.client.post(
+        `/booking/${bookingId}/cancel`,
+        { reason }
+      );
+      return response.data;
     } catch (error) {
       console.error("Error cancelling booking:", error);
-      throw new Error("Failed to cancel booking");
+      throw new Error(
+        error.response?.data?.message || "Failed to cancel booking"
+      );
     }
   },
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { bookingService } from '../../services/bookingService';
 import EnhancedStationService from '../../services/StationService';
 import { useToast } from '../../hooks/useToast';
+import ErrorModal from '../ErrorModal';
 
 const BookingForm = ({ onBookingCreated, onCancel }) => {
     const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
     const [stations, setStations] = useState([]);
     const [loadingStations, setLoadingStations] = useState(true);
     const { showToast } = useToast();
+    const [errorModal, setErrorModal] = useState({ show: false, message: '' });
 
     useEffect(() => {
         const fetchStations = async () => {
@@ -36,11 +38,31 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
         }));
     };
 
+    const showErrorModal = (msg) => setErrorModal({ show: true, message: msg });
+    const closeErrorModal = () => setErrorModal({ show: false, message: '' });
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!formData.stationId || !formData.ownerNIC || !formData.reservationTime) {
             showToast('Please fill in all required fields', 'error');
+            return;
+        }
+
+        // Reservation time validation: must be within 7 days from now
+        const now = new Date();
+        const reservationDate = new Date(formData.reservationTime);
+        const diffMs = reservationDate - now;
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+        if (diffDays < 0) {
+            showToast('Reservation date/time cannot be in the past.', 'error');
+            showErrorModal('Reservation date/time cannot be in the past.');
+            return;
+        }
+        if (diffDays > 7) {
+            showToast('Reservation date/time must be within 7 days from today.', 'error');
+            showErrorModal('Reservation date/time must be within 7 days from today.');
             return;
         }
 
@@ -58,6 +80,7 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
             });
         } catch (error) {
             showToast(error.message, 'error');
+            showErrorModal(error.message);
         } finally {
             setIsSubmitting(false);
         }
@@ -141,6 +164,9 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
                     </div>
                 </form>
             </div>
+            {errorModal.show && (
+                <ErrorModal message={errorModal.message} onClose={closeErrorModal} />
+            )}
         </div>
     );
 };
