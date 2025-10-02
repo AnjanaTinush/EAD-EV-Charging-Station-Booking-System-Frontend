@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { bookingService } from "../services/bookingService";
 import { useToast } from "../hooks/useToast";
-import BookingForm from "./BookingForm";
-import BookingDetailsModal from "./BookingDetailsModal";
+import BookingForm from "./bookings/BookingForm";
+import BookingDetailsModal from "./bookings/BookingDetailsModal";
+import BookingTable from "./bookings/BookingTable";
+import BookingStatus from "./bookings/BookingStatus";
+import CancelBookingModal from "./bookings/CancelBookingModal";
+import ErrorModal from "./ErrorModal";
 
 const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
@@ -13,7 +17,13 @@ const BookingManagement = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [cancelBookingId, setCancelBookingId] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [errorModal, setErrorModal] = useState({ show: false, message: "" });
   const { showToast } = useToast();
+
+  const showErrorModal = (msg) => setErrorModal({ show: true, message: msg });
+  const closeErrorModal = () => setErrorModal({ show: false, message: "" });
 
   const fetchAllBookings = useCallback(async () => {
     try {
@@ -24,6 +34,7 @@ const BookingManagement = () => {
     } catch (err) {
       setError(err.message);
       showToast(err.message, "error");
+      showErrorModal(err.message);
     } finally {
       setLoading(false);
     }
@@ -35,14 +46,44 @@ const BookingManagement = () => {
   }, [fetchAllBookings]);
 
   const handleStatusChange = async (bookingId, newStatus) => {
+    if (newStatus === "Cancelled") {
+      setCancelBookingId(bookingId);
+      setShowCancelModal(true);
+      return;
+    }
     try {
-      await bookingService.updateBookingStatus(bookingId, newStatus);
+      if (newStatus === "Approved") {
+        await bookingService.approveBooking(bookingId);
+      } else if (newStatus === "Completed") {
+        await bookingService.completeBooking(bookingId);
+      } else {
+        await bookingService.updateBookingStatus(bookingId, newStatus);
+      }
       showToast(`Booking ${newStatus.toLowerCase()} successfully`, "success");
-      // Refresh bookings
       fetchAllBookings();
     } catch (err) {
       showToast(err.message, "error");
+      showErrorModal(err.message);
     }
+  };
+
+  const handleConfirmCancel = async (reason) => {
+    try {
+      await bookingService.cancelBooking(cancelBookingId, reason);
+      showToast("Booking cancelled successfully", "success");
+      fetchAllBookings();
+    } catch (err) {
+      showToast(err.message, "error");
+      showErrorModal(err.message);
+    } finally {
+      setShowCancelModal(false);
+      setCancelBookingId(null);
+    }
+  };
+
+  const handleCancelModalClose = () => {
+    setShowCancelModal(false);
+    setCancelBookingId(null);
   };
 
   const handleDeleteBooking = async (bookingId) => {
@@ -57,6 +98,7 @@ const BookingManagement = () => {
       fetchAllBookings();
     } catch (err) {
       showToast(err.message, "error");
+      showErrorModal(err.message);
     }
   };
 
@@ -112,7 +154,7 @@ const BookingManagement = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-32 h-32 border-b-2 border-blue-600 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -136,6 +178,11 @@ const BookingManagement = () => {
             Retry
           </button>
         </div>
+      )}
+
+      {/* Error Modal */}
+      {errorModal.show && (
+        <ErrorModal message={errorModal.message} onClose={closeErrorModal} />
       )}
 
       {/* Filters and Search */}
@@ -177,152 +224,17 @@ const BookingManagement = () => {
       </div>
 
       {/* Bookings Stats */}
-      <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
-        <div className="p-4 bg-white border rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Bookings</h3>
-          <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
-        </div>
-        <div className="p-4 bg-white border rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Pending</h3>
-          <p className="text-2xl font-bold text-yellow-600">
-            {bookings.filter((b) => b.status === "Pending").length}
-          </p>
-        </div>
-        <div className="p-4 bg-white border rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Approved</h3>
-          <p className="text-2xl font-bold text-green-600">
-            {bookings.filter((b) => b.status === "Approved").length}
-          </p>
-        </div>
-        <div className="p-4 bg-white border rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Completed</h3>
-          <p className="text-2xl font-bold text-blue-600">
-            {bookings.filter((b) => b.status === "Completed").length}
-          </p>
-        </div>
-      </div>
+      <BookingStatus bookings={bookings} />
 
       {/* Bookings Table */}
-      <div className="overflow-hidden bg-white rounded-lg shadow">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                  Booking ID
-                </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                  Owner NIC
-                </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                  Station ID
-                </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                  Reservation Time
-                </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                  Created At
-                </th>
-                <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredBookings.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="7"
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    No bookings found
-                  </td>
-                </tr>
-              ) : (
-                filteredBookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                      {booking.id.slice(-8)}...
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {booking.ownerNIC}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {booking.stationId.slice(-8)}...
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {formatDateTime(booking.reservationTime)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                          booking.status
-                        )}`}
-                      >
-                        {booking.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {formatDateTime(booking.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => handleViewDetails(booking)}
-                          className="px-2 py-1 text-xs text-blue-600 bg-blue-100 rounded hover:text-blue-900"
-                        >
-                          View More
-                        </button>
-                        {booking.status === "Pending" && (
-                          <>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(booking.id, "Approved")
-                              }
-                              className="px-2 py-1 text-xs text-green-600 bg-green-100 rounded hover:text-green-900"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(booking.id, "Cancelled")
-                              }
-                              className="px-2 py-1 text-xs text-red-600 bg-red-100 rounded hover:text-red-900"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        )}
-                        {booking.status === "Approved" && (
-                          <button
-                            onClick={() =>
-                              handleStatusChange(booking.id, "Completed")
-                            }
-                            className="px-2 py-1 text-xs text-blue-600 bg-blue-100 rounded hover:text-blue-900"
-                          >
-                            Complete
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDeleteBooking(booking.id)}
-                          className="px-2 py-1 text-xs text-red-600 bg-red-100 rounded hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-     
+      <BookingTable
+        bookings={filteredBookings}
+        handleStatusChange={handleStatusChange}
+        handleViewDetails={handleViewDetails}
+        handleDeleteBooking={handleDeleteBooking}
+        formatDateTime={formatDateTime}
+        getStatusColor={getStatusColor}
+      />
 
       {/* Create Booking Form Modal */}
       {showCreateForm && (
@@ -337,6 +249,14 @@ const BookingManagement = () => {
         <BookingDetailsModal
           booking={selectedBooking}
           onClose={handleCloseModal}
+        />
+      )}
+
+      {/* Cancel Booking Modal */}
+      {showCancelModal && (
+        <CancelBookingModal
+          onConfirm={handleConfirmCancel}
+          onClose={handleCancelModalClose}
         />
       )}
     </div>
