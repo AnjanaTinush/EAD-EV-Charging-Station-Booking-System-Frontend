@@ -54,6 +54,8 @@ const BookingManagement = () => {
     try {
       if (newStatus === "Approved") {
         await bookingService.approveBooking(bookingId);
+      } else if (newStatus === "Completed") {
+        await bookingService.completeBooking(bookingId);
       } else {
         await bookingService.updateBookingStatus(bookingId, newStatus);
       }

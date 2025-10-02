@@ -212,16 +212,23 @@ export const bookingService = {
   },
 
   /**
-   * Complete a booking
+   * Complete a booking (calls /booking/{id}/complete with notes)
    * @param {string} bookingId - The booking ID
    * @returns {Promise<Object>} Updated booking object
    */
   completeBooking: async (bookingId) => {
     try {
-      return await bookingService.updateBookingStatus(bookingId, "Completed");
+      if (!bookingId) throw new Error("Booking ID is required");
+      const response = await apiService.client.post(
+        `/booking/${bookingId}/complete`,
+        { notes: "Charging session completed successfully" }
+      );
+      return response.data;
     } catch (error) {
       console.error("Error completing booking:", error);
-      throw new Error("Failed to complete booking");
+      throw new Error(
+        error.response?.data?.message || "Failed to complete booking"
+      );
     }
   },
 
