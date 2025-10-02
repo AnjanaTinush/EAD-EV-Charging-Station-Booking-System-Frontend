@@ -126,9 +126,9 @@ export const bookingService = {
   },
 
   /**
-   * Update booking status
+   * Update booking status (except approve)
    * @param {string} bookingId - The booking ID
-   * @param {string} status - The new status (Pending, Approved, Cancelled, Completed)
+   * @param {string} status - The new status (Pending, Cancelled, Completed)
    * @returns {Promise<Object>} Updated booking object
    */
   updateBookingStatus: async (bookingId, status) => {
@@ -141,10 +141,11 @@ export const bookingService = {
         throw new Error("Status is required");
       }
 
-      const validStatuses = ["Pending", "Approved", "Cancelled", "Completed"];
+      // Only allow status changes except "Approved"
+      const validStatuses = ["Pending", "Cancelled", "Completed"];
       if (!validStatuses.includes(status)) {
         throw new Error(
-          `Invalid status. Must be one of: ${validStatuses.join(", ")}`
+          `Invalid status for this endpoint. Must be one of: ${validStatuses.join(", ")}`
         );
       }
 
@@ -164,6 +165,30 @@ export const bookingService = {
   },
 
   /**
+   * Approve a booking (calls /booking/{id}/approve)
+   * @param {string} bookingId - The booking ID
+   * @returns {Promise<Object>} Updated booking object
+   */
+  approveBooking: async (bookingId) => {
+    try {
+      if (!bookingId) {
+        throw new Error("Booking ID is required");
+      }
+      // POST to /booking/{id}/approve with { approve: true }
+      const response = await apiService.client.post(
+        `/booking/${bookingId}/approve`,
+        { approve: true }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error approving booking:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to approve booking"
+      );
+    }
+  },
+
+  /**
    * Cancel a booking
    * @param {string} bookingId - The booking ID
    * @returns {Promise<Object>} Updated booking object
@@ -174,20 +199,6 @@ export const bookingService = {
     } catch (error) {
       console.error("Error cancelling booking:", error);
       throw new Error("Failed to cancel booking");
-    }
-  },
-
-  /**
-   * Approve a booking
-   * @param {string} bookingId - The booking ID
-   * @returns {Promise<Object>} Updated booking object
-   */
-  approveBooking: async (bookingId) => {
-    try {
-      return await bookingService.updateBookingStatus(bookingId, "Approved");
-    } catch (error) {
-      console.error("Error approving booking:", error);
-      throw new Error("Failed to approve booking");
     }
   },
 
