@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   
   // Get backend URL from environment or use default
-  const backendTarget = env.VITE_BACKEND_URL || 'http://localhost:5227'
+  const backendTarget = env.VITE_BACKEND_URL || 'http://localhost:7179'
   const enableProxyLogs = env.VITE_ENABLE_PROXY_LOGS === 'true'
 
   return {

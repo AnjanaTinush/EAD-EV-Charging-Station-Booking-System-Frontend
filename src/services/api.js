@@ -30,10 +30,10 @@ const fetchWithCORS = async (url, options = {}) => {
 };
 
 export const authAPI = {
-  login: async (email, password) => {
+  login: async (nic, password) => {
     return fetchWithCORS(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ nic, password }),
     });
   },
 
@@ -43,6 +43,7 @@ export const authAPI = {
       email: userData.email,
       phone: userData.phone,
       password: userData.password,
+      nic: userData.nic,
       role: userData.role || 'Customer'
     };
 
@@ -79,6 +80,7 @@ export const userAPI = {
       username: userData.username,
       email: userData.email,
       phone: userData.phone,
+      nic: userData.nic,
       role: userData.role
     };
 
@@ -106,6 +108,7 @@ export const userAPI = {
       username: userData.username,
       email: userData.email,
       phone: userData.phone,
+      nic: userData.nic,
       role: userData.role
     };
 
@@ -157,6 +160,7 @@ export const userAPI = {
       username: userData.username,
       email: userData.email,
       phone: userData.phone,
+      nic: userData.nic,
       role: userData.role
     };
 

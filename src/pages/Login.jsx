@@ -5,7 +5,7 @@ import { trackLogin } from '../utils/loginTracker';
 
 export default function Login() {
   const [formData, setFormData] = useState({
-    email: '',
+    nic: '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -26,7 +26,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const result = await authAPI.login(formData.email, formData.password);
+      const result = await authAPI.login(formData.nic, formData.password);
       localStorage.setItem('token', result.token);
       localStorage.setItem('user', JSON.stringify(result.user));
 
@@ -36,7 +36,7 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err) {
       // Track failed login attempt
-      trackLogin('Failed', formData.email);
+      trackLogin('Failed', formData.nic);
 
       setError(err.message);
     } finally {
@@ -73,21 +73,21 @@ export default function Login() {
 
           <div className="space-y-6">
             <div className="ev-form-group">
-              <label htmlFor="email" className="ev-label flex items-center space-x-2">
+              <label htmlFor="nic" className="ev-label flex items-center space-x-2">
                 <svg className="w-4 h-4 text-ev-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span>Email Address</span>
+                <span>National ID (NIC)</span>
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
+                id="nic"
+                name="nic"
+                type="text"
                 required
-                value={formData.email}
+                value={formData.nic}
                 onChange={handleChange}
                 className="ev-input w-full text-gray-900 placeholder-gray-500"
-                placeholder="Enter your email address"
+                placeholder="Enter your National ID number"
               />
             </div>
 
