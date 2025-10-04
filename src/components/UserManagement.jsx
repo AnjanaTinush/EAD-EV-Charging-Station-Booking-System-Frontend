@@ -4,6 +4,7 @@ import UserModal from './UserModal';
 import { useConfirmation } from '../hooks/useConfirmation.jsx';
 import { useToast } from '../hooks/useToast';
 import Toast from './Toast';
+import database from '../utils/database';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -20,15 +21,34 @@ export default function UserManagement() {
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await userAPI.getAllUsers();
-      setUsers(response.users || response || []);
+
+      // Initialize database
+      await database.init();
+
+      // Try to fetch from API first
+      try {
+        const response = await userAPI.getAllUsers();
+        const apiUsers = response.users || response || [];
+
+        // Sync API users to local database
+        for (const user of apiUsers) {
+          await database.syncUserFromAPI(user);
+        }
+
+        setUsers(apiUsers);
+      } catch (apiError) {
+        // If API fails, load from local database
+        console.warn('API failed, loading from local database:', apiError);
+        const localUsers = await database.getAllUsers();
+        setUsers(localUsers);
+
+        if (localUsers.length === 0) {
+          showError('No users found. Please check your connection.');
+        }
+      }
     } catch (err) {
       showError('Failed to fetch users: ' + err.message);
-      setUsers([
-        { id: 1, username: 'john_doe', email: 'john@example.com', phone: '123-456-7890', role: 'Customer' },
-        { id: 2, username: 'jane_admin', email: 'jane@example.com', phone: '098-765-4321', role: 'Backoffice' },
-        { id: 3, username: 'bob_user', email: 'bob@example.com', phone: '555-123-4567', role: 'Customer' }
-      ]);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -95,6 +115,7 @@ export default function UserManagement() {
     if (confirmed) {
       try {
         await userAPI.deleteUser(user.id);
+        await database.deleteUser(user.id);
         setUsers(users.filter(u => u.id !== user.id));
         showSuccess(`User "${user.username}" deleted successfully`);
       } catch (err) {
@@ -103,16 +124,55 @@ export default function UserManagement() {
     }
   };
 
+  const handleDeactivateUser = async (user) => {
+    const confirmed = await showConfirmation({
+      title: 'Deactivate User',
+      message: `Are you sure you want to deactivate "${user.username}"? The user will not be able to access the system until reactivated.`,
+      confirmText: 'Deactivate',
+      confirmButtonClass: 'bg-yellow-500 hover:bg-yellow-600'
+    });
+
+    if (confirmed) {
+      try {
+        await userAPI.deactivateUser(user.id);
+        await database.deactivateUser(user.id);
+        const updatedUsers = users.map(u =>
+          u.id === user.id ? { ...u, isActive: false } : u
+        );
+        setUsers(updatedUsers);
+        showSuccess(`User "${user.username}" deactivated successfully`);
+      } catch (err) {
+        showError('Failed to deactivate user: ' + err.message);
+      }
+    }
+  };
+
+  const handleReactivateUser = async (user) => {
+    try {
+      await userAPI.reactivateUser(user.id);
+      await database.reactivateUser(user.id);
+      const updatedUsers = users.map(u =>
+        u.id === user.id ? { ...u, isActive: true } : u
+      );
+      setUsers(updatedUsers);
+      showSuccess(`User "${user.username}" reactivated successfully`);
+    } catch (err) {
+      showError('Failed to reactivate user: ' + err.message);
+    }
+  };
+
   const handleSaveUser = async (userData) => {
     try {
       if (selectedUser) {
-        await userAPI.updateUser(selectedUser.id, userData);
+        const updatedUser = await userAPI.updateUser(selectedUser.id, userData);
+        await database.updateUser(selectedUser.id, userData);
         const updatedUsers = users.map(user =>
           user.id === selectedUser.id ? { ...user, ...userData } : user
         );
         setUsers(updatedUsers);
       } else {
         const newUser = await userAPI.createUser(userData);
+        await database.addUser(newUser);
         setUsers([...users, newUser]);
       }
       showSuccess(`User ${selectedUser ? 'updated' : 'created'} successfully`);
@@ -201,10 +261,13 @@ export default function UserManagement() {
                   Email
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Phone
+                  NIC
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -213,7 +276,7 @@ export default function UserManagement() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user.id} className={`hover:bg-gray-50 ${!user.isActive ? 'opacity-60' : ''}`}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {user.username}
                   </td>
@@ -221,15 +284,24 @@ export default function UserManagement() {
                     {user.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.phone}
+                    {user.nic || user.NIC || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      user.role === 'Backoffice'
+                      user.role === 'Backoffice' || user.role === '0'
                         ? 'bg-blue-100 text-blue-800'
+                        : user.role === 'StationOperator' || user.role === '1'
+                        ? 'bg-purple-100 text-purple-800'
                         : 'bg-green-100 text-green-800'
                     }`}>
-                      {user.role}
+                      {user.role === '0' ? 'Backoffice' : user.role === '1' ? 'StationOperator' : user.role === '2' ? 'EvOwner' : user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {user.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -239,6 +311,21 @@ export default function UserManagement() {
                     >
                       Edit
                     </button>
+                    {user.isActive ? (
+                      <button
+                        onClick={() => handleDeactivateUser(user)}
+                        className="text-yellow-600 hover:text-yellow-900 bg-yellow-100 hover:bg-yellow-200 px-3 py-1 rounded-md transition-colors"
+                      >
+                        Deactivate
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleReactivateUser(user)}
+                        className="text-green-600 hover:text-green-900 bg-green-100 hover:bg-green-200 px-3 py-1 rounded-md transition-colors"
+                      >
+                        Reactivate
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDeleteUser(user)}
                       className="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md transition-colors"
