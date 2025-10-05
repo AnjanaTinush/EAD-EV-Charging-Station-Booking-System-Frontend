@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { bookingService } from '../../services/bookingService';
+import ErrorModal from '../ErrorModal';
 
 const BookingDetailsModal = ({ booking, onClose }) => {
     if (!booking) return null;
@@ -19,6 +21,36 @@ const BookingDetailsModal = ({ booking, onClose }) => {
                 return 'text-blue-600 bg-blue-100';
             default:
                 return 'text-gray-600 bg-gray-100';
+        }
+    };
+
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
+    const [newReservationTime, setNewReservationTime] = useState('');
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [errorModal, setErrorModal] = useState({ show: false, message: '' });
+
+    const showErrorModal = (msg) => setErrorModal({ show: true, message: msg });
+    const closeErrorModal = () => setErrorModal({ show: false, message: '' });
+
+    const handleUpdateReservation = async (e) => {
+        e.preventDefault();
+        if (!newReservationTime) {
+            showErrorModal("Please select a new reservation time.");
+            return;
+        }
+        setIsUpdating(true);
+        try {
+            await bookingService.updateReservationTime(
+                booking.id,
+                newReservationTime,
+                booking.reservationTime
+            );
+            showErrorModal("Reservation time updated successfully.");
+            setShowUpdateModal(false);
+        } catch (err) {
+            showErrorModal(err.message);
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -73,6 +105,12 @@ const BookingDetailsModal = ({ booking, onClose }) => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500">Reservation Time</label>
                                     <p className="mt-1 text-sm text-gray-900">{formatDateTime(booking.reservationTime)}</p>
+                                    <button
+                                        onClick={() => setShowUpdateModal(true)}
+                                        className="mt-2 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        Update Reservation Time
+                                    </button>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-500">Created At</label>
@@ -182,6 +220,43 @@ const BookingDetailsModal = ({ booking, onClose }) => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Update Reservation Modal */}
+                    {showUpdateModal && (
+                        <form onSubmit={handleUpdateReservation} className="mt-4 flex flex-col gap-2">
+                            <label className="text-sm font-medium text-gray-700">
+                                New Reservation Time
+                            </label>
+                            <input
+                                type="datetime-local"
+                                value={newReservationTime}
+                                onChange={e => setNewReservationTime(e.target.value)}
+                                min={new Date().toISOString().slice(0, 16)}
+                                className="px-3 py-2 border rounded"
+                                required
+                            />
+                            <div className="flex gap-2 mt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowUpdateModal(false)}
+                                    className="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                                    disabled={isUpdating}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 text-sm text-white bg-blue-600 rounded hover:bg-blue-700"
+                                    disabled={isUpdating}
+                                >
+                                    {isUpdating ? "Updating..." : "Update"}
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                    {errorModal.show && (
+                        <ErrorModal message={errorModal.message} onClose={closeErrorModal} />
+                    )}
 
                     {/* Footer */}
                     <div className="flex justify-end mt-6 pt-4 border-t border-gray-200">

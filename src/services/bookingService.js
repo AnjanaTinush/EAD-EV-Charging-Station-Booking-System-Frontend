@@ -296,6 +296,36 @@ export const bookingService = {
       );
     }
   },
+
+  /**
+   * Update reservation time (must be at least 12 hours before the current reservation)
+   * @param {string} bookingId
+   * @param {string} newReservationTime (ISO string)
+   * @param {string} currentReservationTime (ISO string)
+   * @returns {Promise<Object>} Updated booking object
+   */
+  updateReservationTime: async (bookingId, newReservationTime, currentReservationTime) => {
+    // Check if update is at least 12 hours before current reservation
+    const now = new Date();
+    const currentResDate = new Date(currentReservationTime);
+    const diffMs = currentResDate - now;
+    const diffHours = diffMs / (1000 * 60 * 60);
+    if (diffHours < 12) {
+      throw new Error("You can only update reservations at least 12 hours before the reservation time.");
+    }
+    try {
+      const response = await apiService.client.put(
+        `/booking/${bookingId}`,
+        { newReservationTime }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating reservation time:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to update reservation time"
+      );
+    }
+  },
 };
 
 export default bookingService;
