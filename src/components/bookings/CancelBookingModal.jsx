@@ -1,10 +1,21 @@
 import React, { useState } from "react";
 
-const CancelBookingModal = ({ onConfirm, onClose }) => {
+const CancelBookingModal = ({ onConfirm, onClose, reservationTime }) => {
     const [reason, setReason] = useState("");
+    const [error, setError] = useState("");
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        setError("");
+        // Check if cancellation is at least 12 hours before reservation
+        const now = new Date();
+        const reservationDate = new Date(reservationTime);
+        const diffMs = reservationDate - now;
+        const diffHours = diffMs / (1000 * 60 * 60);
+        if (diffHours < 12) {
+            setError("You can only cancel reservations at least 12 hours before the reservation time.");
+            return;
+        }
         if (reason.trim()) {
             onConfirm(reason);
         }
@@ -26,6 +37,11 @@ const CancelBookingModal = ({ onConfirm, onClose }) => {
                         rows={3}
                         placeholder="Enter reason..."
                     />
+                    {error && (
+                        <div className="mt-2 mb-2 text-sm text-red-600 bg-red-100 rounded px-2 py-1">
+                            {error}
+                        </div>
+                    )}
                     <div className="flex justify-end mt-4 space-x-2">
                         <button
                             type="button"

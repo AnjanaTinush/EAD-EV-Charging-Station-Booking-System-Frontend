@@ -18,6 +18,7 @@ const BookingManagement = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [cancelBookingId, setCancelBookingId] = useState(null);
+  const [cancelReservationTime, setCancelReservationTime] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [errorModal, setErrorModal] = useState({ show: false, message: "" });
   const { showToast } = useToast();
@@ -47,7 +48,9 @@ const BookingManagement = () => {
 
   const handleStatusChange = async (bookingId, newStatus) => {
     if (newStatus === "Cancelled") {
+      const booking = bookings.find((b) => b.id === bookingId);
       setCancelBookingId(bookingId);
+      setCancelReservationTime(booking ? booking.reservationTime : null);
       setShowCancelModal(true);
       return;
     }
@@ -257,6 +260,7 @@ const BookingManagement = () => {
         <CancelBookingModal
           onConfirm={handleConfirmCancel}
           onClose={handleCancelModalClose}
+          reservationTime={cancelReservationTime}
         />
       )}
     </div>
