@@ -105,11 +105,11 @@ const DashboardDetails = ({ user }) => {
 
         <div className="grid grid-cols-1 gap-6 mt-8 md:grid-cols-4">
           <div className="border-2 ev-stat-card bg-gradient-to-br from-ev-primary-50 to-ev-primary-100 border-ev-primary-200">
-            <div className="ev-stat-icon">
+            {/* <div className="ev-stat-icon">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
-            </div>
+            </div> */}
             <h3 className="mb-1 text-lg font-bold text-ev-primary-800">
               Total Bookings
             </h3>
@@ -120,11 +120,11 @@ const DashboardDetails = ({ user }) => {
           </div>
 
           <div className="border-2 ev-stat-card bg-gradient-to-br from-ev-energy-400/10 to-ev-energy-500/20 border-ev-energy-400/30">
-            <div className="flex items-center justify-center w-12 h-12 mb-4 text-white bg-gradient-to-r from-ev-energy-400 to-ev-energy-600 rounded-xl">
+            {/* <div className="flex items-center justify-center w-12 h-12 mb-4 text-white bg-gradient-to-r from-ev-energy-400 to-ev-energy-600 rounded-xl">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l3.09 6.26L22 9l-5.91 5.74L18 22l-6-3.27L6 22l1.91-7.26L2 9l6.91-0.74L12 2z" />
               </svg>
-            </div>
+            </div> */}
             <h3 className="mb-1 text-lg font-bold text-ev-energy-800">
               Today's Bookings
             </h3>
@@ -135,11 +135,11 @@ const DashboardDetails = ({ user }) => {
           </div>
 
           <div className="border-2 ev-stat-card bg-gradient-to-br from-ev-secondary-50 to-ev-secondary-100 border-ev-secondary-200">
-            <div className="flex items-center justify-center w-12 h-12 mb-4 text-white bg-ev-secondary-gradient rounded-xl">
+            {/* <div className="flex items-center justify-center w-12 h-12 mb-4 text-white bg-ev-secondary-gradient rounded-xl">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-            </div>
+            </div> */}
             <h3 className="mb-1 text-lg font-bold text-ev-secondary-800">
               Upcoming
             </h3>
@@ -150,11 +150,11 @@ const DashboardDetails = ({ user }) => {
           </div>
 
           <div className="border-2 border-green-200 ev-stat-card bg-gradient-to-br from-green-50 to-green-100">
-            <div className="flex items-center justify-center w-12 h-12 mb-4 text-white bg-gradient-to-r from-green-400 to-green-600 rounded-xl">
+            {/* <div className="flex items-center justify-center w-12 h-12 mb-4 text-white bg-gradient-to-r from-green-400 to-green-600 rounded-xl">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-            </div>
+            </div> */}
             <h3 className="mb-1 text-lg font-bold text-green-800">Completed</h3>
             <p className="mb-2 text-3xl font-bold text-green-600">
               {statusCounts.Completed}
@@ -198,7 +198,7 @@ const DashboardDetails = ({ user }) => {
           <h3 className="text-2xl font-bold text-gray-900">Today's Bookings</h3>
           <button
             onClick={() => setShowBookingManagement(true)}
-            className="px-4 py-2 text-sm font-medium text-white transition duration-200 bg-blue-600 rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 text-sm font-medium text-white transition duration-200 bg-green-600 rounded-lg hover:bg-green-700"
           >
             View All
           </button>
@@ -268,7 +268,7 @@ const DashboardDetails = ({ user }) => {
           </h3>
           <button
             onClick={() => setShowBookingManagement(true)}
-            className="px-4 py-2 text-sm font-medium text-white transition duration-200 bg-blue-600 rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 text-sm font-medium text-white transition duration-200 bg-green-600 rounded-lg hover:bg-green-700"
           >
             View All
           </button>
