@@ -46,6 +46,7 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
 
         if (!formData.stationId || !formData.ownerNIC || !formData.reservationTime) {
             showToast('Please fill in all required fields', 'error');
+            showErrorModal('Please fill in all required fields');
             return;
         }
 
