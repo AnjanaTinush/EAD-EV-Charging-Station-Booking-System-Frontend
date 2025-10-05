@@ -124,6 +124,10 @@ const BookingManagement = () => {
     setSelectedBooking(null);
   };
 
+  const handleBookingUpdated = () => {
+    fetchAllBookings();
+  };
+
   const formatDateTime = (dateString) => {
     return new Date(dateString).toLocaleString();
   };
@@ -252,6 +256,7 @@ const BookingManagement = () => {
         <BookingDetailsModal
           booking={selectedBooking}
           onClose={handleCloseModal}
+          onBookingUpdated={handleBookingUpdated}
         />
       )}
 

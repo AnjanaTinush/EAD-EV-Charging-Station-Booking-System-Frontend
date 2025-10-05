@@ -305,13 +305,18 @@ export const bookingService = {
    * @returns {Promise<Object>} Updated booking object
    */
   updateReservationTime: async (bookingId, newReservationTime, currentReservationTime) => {
-    // Check if update is at least 12 hours before current reservation
+    // Check if update is at least 12 hours before the current reservation
     const now = new Date();
     const currentResDate = new Date(currentReservationTime);
     const diffMs = currentResDate - now;
     const diffHours = diffMs / (1000 * 60 * 60);
     if (diffHours < 12) {
       throw new Error("You can only update reservations at least 12 hours before the reservation time.");
+    }
+    // Optionally: You may want to check that the newReservationTime is valid (not in the past)
+    const newResDate = new Date(newReservationTime);
+    if (newResDate < now) {
+      throw new Error("New reservation time cannot be in the past.");
     }
     try {
       const response = await apiService.client.put(
