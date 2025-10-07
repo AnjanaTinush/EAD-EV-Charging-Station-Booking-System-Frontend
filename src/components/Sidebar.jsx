@@ -32,7 +32,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
     },
     { 
       id: 'bookings', 
-      label: 'My Bookings', 
+      label: 'Bookings', 
       icon: (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
@@ -78,11 +78,11 @@ export default function Sidebar({ activeSection, setActiveSection }) {
   ];
 
   return (
-    <div className="ev-sidebar w-72 min-h-screen flex flex-col shadow-2xl">
+    <div className="flex flex-col min-h-screen shadow-2xl ev-sidebar w-72">
       {/* Header */}
       <div className="p-6 border-b border-ev-primary-700">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+        <div className="flex items-center mb-3 space-x-3">
+          <div className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-xl">
             <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
             </svg>
@@ -119,9 +119,9 @@ export default function Sidebar({ activeSection, setActiveSection }) {
 
       {/* User Info & Logout */}
       <div className="p-6 border-t border-ev-primary-700">
-        <div className="mb-4 p-3 bg-white/10 rounded-xl">
-          <div className="flex items-center space-x-2 mb-2">
-            <div className="w-8 h-8 bg-ev-accent-400 rounded-lg flex items-center justify-center">
+        <div className="p-3 mb-4 bg-white/10 rounded-xl">
+          <div className="flex items-center mb-2 space-x-2">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-ev-accent-400">
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
@@ -137,7 +137,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
         
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 transform hover:scale-105"
+          className="flex items-center justify-center w-full px-4 py-3 space-x-2 text-sm font-semibold text-white transition-all duration-200 transform bg-red-500 hover:bg-red-600 rounded-xl hover:scale-105"
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
             <path fillRule="evenodd" d="M7.5 3.75A1.5 1.5 0 006 5.25v13.5a1.5 1.5 0 001.5 1.5h6a1.5 1.5 0 001.5-1.5V15a.75.75 0 011.5 0v3.75a3 3 0 01-3 3h-6a3 3 0 01-3-3V5.25a3 3 0 013-3h6a3 3 0 013 3V9A.75.75 0 0115 9V5.25a1.5 1.5 0 00-1.5-1.5h-6z" clipRule="evenodd"/>

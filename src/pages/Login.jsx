@@ -50,7 +50,7 @@ export default function Login() {
         <div className="text-center">
           <div className="mx-auto w-20 h-20 bg-ev-gradient rounded-3xl flex items-center justify-center mb-6 charging-animation shadow-ev-glow">
             <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+              <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" />
             </svg>
           </div>
           <h1 className="text-5xl font-bold ev-gradient-text mb-3">
@@ -60,7 +60,7 @@ export default function Login() {
             Power up your journey with smart charging
           </p>
         </div>
-        
+
         <form className="mt-8 ev-form" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center space-x-3">
@@ -77,7 +77,7 @@ export default function Login() {
                 <svg className="w-4 h-4 text-ev-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span>National ID (NIC)</span>
+                <span>NIC Number</span>
               </label>
               <input
                 id="nic"
@@ -87,7 +87,7 @@ export default function Login() {
                 value={formData.nic}
                 onChange={handleChange}
                 className="ev-input w-full text-gray-900 placeholder-gray-500"
-                placeholder="Enter your National ID number"
+                placeholder="Enter your NIC number"
               />
             </div>
 
@@ -128,7 +128,7 @@ export default function Login() {
               ) : (
                 <>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                   <span>Power Up & Sign In</span>
                 </>
@@ -148,8 +148,8 @@ export default function Login() {
 
         {/* Decorative elements */}
         <div className="absolute top-10 left-10 w-20 h-20 bg-ev-primary-200 rounded-full opacity-20 animate-pulse-slow"></div>
-        <div className="absolute bottom-10 right-10 w-16 h-16 bg-ev-secondary-200 rounded-full opacity-20 animate-pulse-slow" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-1/2 right-5 w-12 h-12 bg-ev-accent-200 rounded-full opacity-20 animate-pulse-slow" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-10 right-10 w-16 h-16 bg-ev-secondary-200 rounded-full opacity-20 animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 right-5 w-12 h-12 bg-ev-accent-200 rounded-full opacity-20 animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
       </div>
     </div>
   );
