@@ -7,6 +7,7 @@ import BookingTable from "./bookings/BookingTable";
 import BookingStatus from "./bookings/BookingStatus";
 import CancelBookingModal from "./bookings/CancelBookingModal";
 import ErrorModal from "./ErrorModal";
+import BookingCalendar from "./bookings/BookingCalander";
 
 const BookingManagement = () => {
   const [bookings, setBookings] = useState([]);
@@ -187,6 +188,8 @@ const BookingManagement = () => {
         </h1>
         <p className="text-gray-600">Manage all charging station bookings</p>
       </div>
+
+      <BookingCalendar />
 
       {error && (
         <div className={`p-4 mb-4 border rounded ${connectionError
