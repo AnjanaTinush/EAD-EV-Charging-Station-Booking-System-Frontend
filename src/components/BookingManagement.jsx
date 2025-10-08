@@ -21,6 +21,7 @@ const BookingManagement = () => {
   const [cancelReservationTime, setCancelReservationTime] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [errorModal, setErrorModal] = useState({ show: false, message: "" });
+  const [connectionError, setConnectionError] = useState(false);
   const { showToast } = useToast();
 
   const showErrorModal = (msg) => setErrorModal({ show: true, message: msg });
@@ -30,10 +31,17 @@ const BookingManagement = () => {
     try {
       setLoading(true);
       setError(null);
+      setConnectionError(false);
       const data = await bookingService.getAllBookings();
       setBookings(data);
     } catch (err) {
       setError(err.message);
+
+      // Check if it's a connection/CORS error
+      if (err.message.includes("Unable to connect") || err.message.includes("Network error")) {
+        setConnectionError(true);
+      }
+
       showToast(err.message, "error");
       showErrorModal(err.message);
     } finally {
@@ -176,72 +184,114 @@ const BookingManagement = () => {
       </div>
 
       {error && (
-        <div className="p-4 mb-4 text-red-700 bg-red-100 border border-red-400 rounded">
-          <p>Error: {error}</p>
+        <div className={`p-4 mb-4 border rounded ${connectionError
+            ? 'text-orange-700 bg-orange-100 border-orange-400'
+            : 'text-red-700 bg-red-100 border-red-400'
+          }`}>
+          <div className="flex items-start">
+            <div className="flex-1">
+              <h3 className="font-semibold">
+                {connectionError ? 'Connection Error' : 'Error'}
+              </h3>
+              <p className="mt-1">{error}</p>
+              {connectionError && (
+                <div className="mt-2 text-sm">
+                  <p>Possible solutions:</p>
+                  <ul className="ml-4 list-disc">
+                    <li>Make sure the API server is running on https://localhost:7179</li>
+                    <li>Check if CORS is properly configured on the server</li>
+                    <li>Verify your network connection</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={fetchAllBookings}
+              className={`px-4 py-2 ml-4 text-white rounded hover:opacity-80 ${connectionError ? 'bg-orange-600' : 'bg-red-600'
+                }`}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Show mock data or empty state when there's a connection error */}
+      {connectionError && bookings.length === 0 ? (
+        <div className="p-8 text-center bg-gray-100 rounded-lg">
+          <div className="mb-4 text-4xl">🔌</div>
+          <h3 className="mb-2 text-lg font-semibold text-gray-900">Unable to Connect to API</h3>
+          <p className="text-gray-600">
+            Please check your API server connection and try again.
+          </p>
           <button
             onClick={fetchAllBookings}
-            className="px-4 py-2 mt-2 text-white bg-red-600 rounded hover:bg-red-700"
+            className="px-4 py-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700"
           >
-            Retry
+            Try Again
           </button>
         </div>
-      )}
+      ) : (
+        <>
+          {/* Error Modal */}
+          {errorModal.show && (
+            <ErrorModal message={errorModal.message} onClose={closeErrorModal} />
+          )}
 
-      {/* Error Modal */}
-      {errorModal.show && (
-        <ErrorModal message={errorModal.message} onClose={closeErrorModal} />
-      )}
+          {/* Filters and Search */}
+          <div className="flex flex-col gap-4 mb-6 sm:flex-row">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Search by NIC, Booking ID, or Station ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <button
+              onClick={fetchAllBookings}
+              className="px-4 py-2 text-white transition duration-200 bg-blue-600 rounded-lg hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Refresh'}
+            </button>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="px-4 py-2 text-white transition duration-200 bg-green-600 rounded-lg hover:bg-green-700"
+              disabled={connectionError}
+            >
+              Create Booking
+            </button>
+          </div>
 
-      {/* Filters and Search */}
-      <div className="flex flex-col gap-4 mb-6 sm:flex-row">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Search by NIC, Booking ID, or Station ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          {/* Bookings Stats */}
+          <BookingStatus bookings={bookings} />
+
+          {/* Bookings Table */}
+          <BookingTable
+            bookings={filteredBookings}
+            handleStatusChange={handleStatusChange}
+            handleViewDetails={handleViewDetails}
+            handleDeleteBooking={handleDeleteBooking}
+            formatDateTime={formatDateTime}
+            getStatusColor={getStatusColor}
           />
-        </div>
-        <div>
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Statuses</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-            <option value="Cancelled">Cancelled</option>
-            <option value="Completed">Completed</option>
-          </select>
-        </div>
-        <button
-          onClick={fetchAllBookings}
-          className="px-4 py-2 text-white transition duration-200 bg-blue-600 rounded-lg hover:bg-blue-700"
-        >
-          Refresh
-        </button>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="px-4 py-2 text-white transition duration-200 bg-green-600 rounded-lg hover:bg-green-700"
-        >
-          Create Booking
-        </button>
-      </div>
-
-      {/* Bookings Stats */}
-      <BookingStatus bookings={bookings} />
-
-      {/* Bookings Table */}
-      <BookingTable
-        bookings={filteredBookings}
-        handleStatusChange={handleStatusChange}
-        handleViewDetails={handleViewDetails}
-        handleDeleteBooking={handleDeleteBooking}
-        formatDateTime={formatDateTime}
-        getStatusColor={getStatusColor}
-      />
+        </>
+      )}
 
       {/* Create Booking Form Modal */}
       {showCreateForm && (
