@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { bookingService } from "../services/bookingService";
-import { useToast } from "../hooks/useToast";
+import { useNotification } from "../contexts/NotificationContext";
 import BookingForm from "./bookings/BookingForm";
 import BookingDetailsModal from "./bookings/BookingDetailsModal";
 import BookingTable from "./bookings/BookingTable";
@@ -22,7 +22,7 @@ const BookingManagement = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [errorModal, setErrorModal] = useState({ show: false, message: "" });
   const [connectionError, setConnectionError] = useState(false);
-  const { showToast } = useToast();
+  const { showSuccess, showError, showWarning, showInfo } = useNotification();
 
   const showErrorModal = (msg) => setErrorModal({ show: true, message: msg });
   const closeErrorModal = () => setErrorModal({ show: false, message: "" });
@@ -34,20 +34,23 @@ const BookingManagement = () => {
       setConnectionError(false);
       const data = await bookingService.getAllBookings();
       setBookings(data);
+      showInfo(`Loaded ${data.length} bookings successfully`);
     } catch (err) {
       setError(err.message);
 
       // Check if it's a connection/CORS error
       if (err.message.includes("Unable to connect") || err.message.includes("Network error")) {
         setConnectionError(true);
+        showError("Unable to connect to API server. Please check connection.");
+      } else {
+        showError(`Failed to load bookings: ${err.message}`);
       }
 
-      showToast(err.message, "error");
       showErrorModal(err.message);
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [showError, showInfo]);
 
   // Fetch all bookings on component mount
   useEffect(() => {
@@ -65,15 +68,17 @@ const BookingManagement = () => {
     try {
       if (newStatus === "Approved") {
         await bookingService.approveBooking(bookingId);
+        showSuccess(`Booking approved successfully! QR code generated.`);
       } else if (newStatus === "Completed") {
         await bookingService.completeBooking(bookingId);
+        showSuccess(`Booking completed successfully!`);
       } else {
         await bookingService.updateBookingStatus(bookingId, newStatus);
+        showSuccess(`Booking status updated to ${newStatus}`);
       }
-      showToast(`Booking ${newStatus.toLowerCase()} successfully`, "success");
       fetchAllBookings();
     } catch (err) {
-      showToast(err.message, "error");
+      showError(`Failed to update booking status: ${err.message}`);
       showErrorModal(err.message);
     }
   };
@@ -81,10 +86,10 @@ const BookingManagement = () => {
   const handleConfirmCancel = async (reason) => {
     try {
       await bookingService.cancelBooking(cancelBookingId, reason);
-      showToast("Booking cancelled successfully", "success");
+      showSuccess(`Booking cancelled successfully. Reason: ${reason}`);
       fetchAllBookings();
     } catch (err) {
-      showToast(err.message, "error");
+      showError(`Failed to cancel booking: ${err.message}`);
       showErrorModal(err.message);
     } finally {
       setShowCancelModal(false);
@@ -104,18 +109,18 @@ const BookingManagement = () => {
 
     try {
       await bookingService.deleteBooking(bookingId);
-      showToast("Booking deleted successfully", "success");
-      // Refresh bookings
+      showSuccess("Booking deleted successfully");
       fetchAllBookings();
     } catch (err) {
-      showToast(err.message, "error");
+      showError(`Failed to delete booking: ${err.message}`);
       showErrorModal(err.message);
     }
   };
 
   const handleBookingCreated = () => {
     setShowCreateForm(false);
-    fetchAllBookings(); // Refresh the list
+    fetchAllBookings();
+    showSuccess("New booking created and list refreshed");
   };
 
   const handleCancelCreate = () => {
@@ -185,8 +190,8 @@ const BookingManagement = () => {
 
       {error && (
         <div className={`p-4 mb-4 border rounded ${connectionError
-            ? 'text-orange-700 bg-orange-100 border-orange-400'
-            : 'text-red-700 bg-red-100 border-red-400'
+          ? 'text-orange-700 bg-orange-100 border-orange-400'
+          : 'text-red-700 bg-red-100 border-red-400'
           }`}>
           <div className="flex items-start">
             <div className="flex-1">

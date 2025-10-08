@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useNotification } from "../../contexts/NotificationContext";
 
 const CancelBookingModal = ({ onConfirm, onClose, reservationTime }) => {
     const [reason, setReason] = useState("");
     const [error, setError] = useState("");
+    const { showWarning } = useNotification();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -13,7 +15,9 @@ const CancelBookingModal = ({ onConfirm, onClose, reservationTime }) => {
         const diffMs = reservationDate - now;
         const diffHours = diffMs / (1000 * 60 * 60);
         if (diffHours < 12) {
-            setError("You can only cancel reservations at least 12 hours before the reservation time.");
+            const errorMsg = "You can only cancel reservations at least 12 hours before the reservation time.";
+            setError(errorMsg);
+            showWarning(errorMsg);
             return;
         }
         if (reason.trim()) {
