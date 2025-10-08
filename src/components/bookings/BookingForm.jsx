@@ -53,7 +53,7 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
 
   useEffect(() => {
     // Filter relevant user by NIC
-    if (formData.ownerNIC.length === 10) {
+    if (formData.ownerNIC.length === 12) {
       const found = allUsers.find(
         (u) => u.nic && u.nic.toLowerCase() === formData.ownerNIC.toLowerCase()
       );
@@ -70,9 +70,9 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
       [name]: value,
     }));
     if (name === "ownerNIC") {
-      // Validate for exactly 10 characters (Sri Lankan old NIC)
-      if (value.length !== 10) {
-        setNicError("NIC must be exactly 10 characters.");
+      // Validate for exactly 12 characters (Sri Lankan new NIC)
+      if (value.length !== 12) {
+        setNicError("NIC must be exactly 12 characters.");
       } else {
         setNicError("");
       }
@@ -95,10 +95,17 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
       return;
     }
 
-    // Sri Lankan NIC validation: exactly 10 characters
-    if (formData.ownerNIC.length !== 10) {
-      showToast("NIC must be exactly 10 characters.", "error");
-      showErrorModal("NIC must be exactly 10 characters.");
+    // Sri Lankan NIC validation: exactly 12 characters
+    if (formData.ownerNIC.length !== 12) {
+      showToast("NIC must be exactly 12 characters.", "error");
+      showErrorModal("NIC must be exactly 12 characters.");
+      return;
+    }
+
+    // Check user active status
+    if (relevantUser && relevantUser.isActive === false) {
+      showToast("This user is inactive and cannot make a booking.", "error");
+      showErrorModal("This user is inactive and cannot make a booking.");
       return;
     }
 
@@ -193,7 +200,7 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
               value={formData.ownerNIC}
               onChange={handleChange}
               required
-              maxLength={10}
+              maxLength={12}
               minLength={10}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter NIC number"
@@ -202,7 +209,7 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
               <div className="mt-1 text-xs text-red-600">{nicError}</div>
             )}
             {/* Relevant user info */}
-            {formData.ownerNIC.length === 10 && (
+            {formData.ownerNIC.length === 12 && (
               <div className="mt-2">
                 {usersLoading ? (
                   <div className="text-xs text-gray-500">
@@ -225,6 +232,16 @@ const BookingForm = ({ onBookingCreated, onCancel }) => {
                     <div>
                       <span className="font-semibold">Role:</span>{" "}
                       {relevantUser.role}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Status:</span>{" "}
+                      {relevantUser.isActive ? (
+                        <span className="text-green-600">Active</span>
+                      ) : (
+                        <span className="text-red-600">
+                          Inactive (cannot book)
+                        </span>
+                      )}
                     </div>
                   </div>
                 ) : (

@@ -4,7 +4,7 @@ import { apiService } from "./SecureApiService.js";
 const bookingValidationSchema = {
   stationId: { required: true, minLength: 1 },
   reservationTime: { required: true },
-  ownerNIC: { required: true, minLength: 10, maxLength: 10 }, // Sri Lankan NIC: exactly 10 chars
+  ownerNIC: { required: true, minLength: 10, maxLength: 12 }, // Sri Lankan NIC: exactly 12 chars
 };
 
 // Validation utility
