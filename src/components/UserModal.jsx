@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { userAPI } from '../services/api';
 import { useToast } from '../hooks/useToast';
+import { useErrorContext } from '../contexts/ErrorContext';
 import Toast from './Toast';
 
 export default function UserModal({ isOpen, onClose, user, onSave, title }) {
@@ -15,6 +16,7 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
   const [errors, setErrors] = useState({});
   
   const { showSuccess, showError } = useToast();
+  const { showError: showValidationError } = useErrorContext();
 
   useEffect(() => {
     if (user) {
@@ -117,7 +119,25 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
       
     } catch (error) {
       console.error('Error saving user:', error);
-      showError(`Failed to ${user ? 'update' : 'create'} user: ${error.message}`);
+      
+      // Display the validation error message using ErrorContext
+      showValidationError(error.message);
+      
+      // Identify which field has the error and highlight it
+      const errorMessage = error.message.toLowerCase();
+      const newErrors = {};
+      
+      if (errorMessage.includes('phone')) {
+        newErrors.phone = 'Invalid phone number';
+      } else if (errorMessage.includes('email')) {
+        newErrors.email = 'Invalid email address';
+      } else if (errorMessage.includes('nic')) {
+        newErrors.nic = 'Invalid NIC number';
+      } else if (errorMessage.includes('username')) {
+        newErrors.username = 'Invalid username';
+      }
+      
+      setErrors(newErrors);
     } finally {
       setLoading(false);
     }

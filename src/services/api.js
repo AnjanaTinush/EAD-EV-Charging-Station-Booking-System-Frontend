@@ -100,9 +100,26 @@ export const userAPI = {
     });
 
     if (!response.ok) {
+      // Get response as text first (can only read response body once)
       const errorText = await response.text();
       console.error("Create user error:", response.status, errorText);
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      
+      // Try to parse the text as JSON to extract the message
+      try {
+        const errorData = JSON.parse(errorText);
+        console.log("Parsed error data:", errorData); // Debug log
+        
+        // If it's JSON with a message field, extract ONLY the message content
+        if (errorData && errorData.message) {
+          throw new Error(errorData.message);
+        }
+        // If no message field, use the whole response
+        throw new Error(errorText);
+      } catch (parseError) {
+        console.log("JSON parse failed, using raw text:", errorText); // Debug log
+        // If JSON parsing fails, use the original error text
+        throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+      }
     }
 
     return response.json();
@@ -127,9 +144,26 @@ export const userAPI = {
     });
 
     if (!response.ok) {
+      // Get response as text first (can only read response body once)
       const errorText = await response.text();
       console.error("Update user error:", response.status, errorText);
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      
+      // Try to parse the text as JSON to extract the message
+      try {
+        const errorData = JSON.parse(errorText);
+        console.log("Parsed error data:", errorData); // Debug log
+        
+        // If it's JSON with a message field, extract ONLY the message content
+        if (errorData && errorData.message) {
+          throw new Error(errorData.message);
+        }
+        // If no message field, use the whole response
+        throw new Error(errorText);
+      } catch (parseError) {
+        console.log("JSON parse failed, using raw text:", errorText); // Debug log
+        // If JSON parsing fails, use the original error text
+        throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+      }
     }
 
     return response.json();
