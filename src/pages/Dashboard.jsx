@@ -5,6 +5,7 @@ import LoginHistory from "../components/LoginHistory";
 import StationManagement from "../components/StationManagement";
 import BookingManagement from "../components/BookingManagement";
 import DashboardDetails from "../components/DashboardDetails";
+import ManageAccess from "../components/ManageAccess";
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -76,6 +77,8 @@ export default function Dashboard() {
         return <BookingManagement />;
       case "users":
         return <UserManagement />;
+      case "access":
+        return <ManageAccess />;
       case "loginHistory":
         return <LoginHistory />;
       case "profile":
