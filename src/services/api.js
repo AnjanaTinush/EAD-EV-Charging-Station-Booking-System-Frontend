@@ -23,6 +23,10 @@ const fetchWithCORS = async (url, options = {}) => {
     } catch {
       errorMessage = `HTTP ${response.status}: ${response.statusText}`;
     }
+    // Add user-friendly message for salt version error
+    if (errorMessage.includes("Invalid salt version")) {
+      errorMessage = "Login failed due to a server password error. Please contact support or try resetting your password.";
+    }
     throw new Error(errorMessage);
   }
 
