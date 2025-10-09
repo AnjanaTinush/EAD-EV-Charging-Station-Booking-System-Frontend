@@ -199,7 +199,6 @@ export default function UserManagement() {
               className="ev-input w-full"
             >
               <option value="All">All Roles</option>
-              <option value="Customer">Customer</option>
               <option value="Backoffice">Backoffice</option>
               <option value="StationOperator">Station Operator</option>
               <option value="EvOwner">EV Owner</option>
