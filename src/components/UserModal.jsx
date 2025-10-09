@@ -5,7 +5,8 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
     username: '',
     email: '',
     phone: '',
-    role: 'Customer'
+    role: 'Customer',
+    nic: ''
   });
 
   useEffect(() => {
@@ -14,14 +15,16 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
         username: user.username || '',
         email: user.email || '',
         phone: user.phone || '',
-        role: user.role || 'Customer'
+        role: user.role || 'Customer',
+        nic: user.nic || ''
       });
     } else {
       setFormData({
         username: '',
         email: '',
         phone: '',
-        role: 'Customer'
+        role: 'Customer',
+        nic: ''
       });
     }
   }, [user]);
@@ -102,6 +105,21 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
           </div>
 
           <div>
+            <label htmlFor="nic" className="block text-sm font-medium text-gray-700">
+              NIC
+            </label>
+            <input
+              type="text"
+              id="nic"
+              name="nic"
+              value={formData.nic}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          <div>
             <label htmlFor="role" className="block text-sm font-medium text-gray-700">
               Role
             </label>
@@ -113,7 +131,9 @@ export default function UserModal({ isOpen, onClose, user, onSave, title }) {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="Customer">Customer</option>
+              <option value="StationOperator">StationOperator</option>
               <option value="Backoffice">Backoffice</option>
+              <option value="EvOwner">EvOwner</option>
             </select>
           </div>
 

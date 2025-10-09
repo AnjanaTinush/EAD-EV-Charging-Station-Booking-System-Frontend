@@ -47,7 +47,7 @@ export const authAPI = {
       email: userData.email,
       phone: userData.phone,
       password: userData.password,
-      role: userData.role || "Customer",
+      role: userData.role || "StationOperator",
     };
 
     return fetchWithCORS(`${API_BASE_URL}/auth/register`, {
@@ -65,6 +65,7 @@ export const userAPI = {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
 
@@ -74,7 +75,9 @@ export const userAPI = {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    // Since API returns array directly, return it as is
+    return data;
   },
 
   createUser: async (userData) => {
@@ -84,6 +87,7 @@ export const userAPI = {
       email: userData.email,
       phone: userData.phone,
       role: userData.role,
+      nic: userData.nic,
     };
 
     const response = await fetch(`${API_BASE_URL}/users`, {
@@ -110,7 +114,7 @@ export const userAPI = {
       username: userData.username,
       email: userData.email,
       phone: userData.phone,
-      role: userData.role,
+      nic: userData.nic,
     };
 
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
