@@ -2,10 +2,19 @@ import { useState } from 'react';
 import PaymentTable from './payments/PaymentTable';
 import AddPaymentModal from './payments/AddPaymentModal';
 
+// Helper to merge base options with discovered options while keeping order
+const mergeOptions = (base, discovered) => {
+  const set = new Set(base);
+  (discovered || []).forEach((d) => { if (d && !set.has(d)) set.add(d); });
+  return Array.from(set);
+};
+
 export default function PaymentManagement() {
   const [filters, setFilters] = useState({ username: '', nic: '', status: '' });
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [statusOptions, setStatusOptions] = useState(['Pending', 'Approved', 'Failed']);
+  const [paymentTypeOptions, setPaymentTypeOptions] = useState(['Cash', 'Card']);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -15,6 +24,15 @@ export default function PaymentManagement() {
   const handleCreated = () => {
     // trigger table reload
     setReloadKey((k) => k + 1);
+  };
+
+  const handleTableDataChange = (rows) => {
+    // derive unique statuses and payment types from rows
+    const statuses = Array.from(new Set((rows || []).map((r) => r.status).filter(Boolean)));
+    const ptypes = Array.from(new Set((rows || []).map((r) => r.paymentType).filter(Boolean)));
+
+    setStatusOptions((prev) => mergeOptions(['Pending', 'Approved', 'Failed'], statuses));
+    setPaymentTypeOptions((prev) => mergeOptions(['Cash', 'Card'], ptypes));
   };
 
   return (
@@ -58,14 +76,14 @@ export default function PaymentManagement() {
           />
           <select name="status" value={filters.status} onChange={handleChange} className="ev-input">
             <option value="">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Completed">Completed</option>
-            <option value="Failed">Failed</option>
+            {statusOptions.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
           </select>
         </div>
       </div>
 
-      <PaymentTable filters={filters} reloadKey={reloadKey} />
+      <PaymentTable filters={filters} reloadKey={reloadKey} onDataChange={handleTableDataChange} />
 
       <AddPaymentModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onCreated={handleCreated} />
     </div>

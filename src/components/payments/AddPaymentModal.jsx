@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import paymentAPI from '../../services/PaymentApiService';
 import { useNotification } from '../../contexts/NotificationContext';
 
-export default function AddPaymentModal({ isOpen, onClose, onCreated, initialData = null, mode = 'add', onUpdated }) {
+export default function AddPaymentModal({ isOpen, onClose, onCreated, initialData = null, mode = 'add', onUpdated, paymentTypeOptions = ['Cash', 'Card'] }) {
   const [form, setForm] = useState({ username: '', nic: '', amount: '', paymentType: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,8 @@ export default function AddPaymentModal({ isOpen, onClose, onCreated, initialDat
     if (isOpen) {
       setTimeout(() => firstInputRef.current && firstInputRef.current.focus(), 0);
     }
-  }, [isOpen]);
+    // also react to changes in initialData while open
+  }, [isOpen, initialData]);
 
   // Close on Escape
   useEffect(() => {
@@ -126,13 +127,12 @@ export default function AddPaymentModal({ isOpen, onClose, onCreated, initialDat
           <div>
             <label className="ev-label">Payment Type *</label>
             {(() => {
-              const options = ['Cash', 'Card'];
-              // if editing and paymentType is an unknown value, keep it selectable
-              if (initialData && initialData.paymentType && !options.includes(initialData.paymentType)) options.push(initialData.paymentType);
+              // merge passed options with current value so it's always selectable
+              const opts = Array.from(new Set([...(paymentTypeOptions || []), ...(initialData && initialData.paymentType ? [initialData.paymentType] : [])]));
               return (
                 <select name="paymentType" value={form.paymentType} onChange={handleChange} className={`ev-input w-full ${errors.paymentType ? 'border-red-500' : ''}`}>
                   <option value="">Select payment type</option>
-                  {options.map((opt) => (
+                  {opts.map((opt) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
