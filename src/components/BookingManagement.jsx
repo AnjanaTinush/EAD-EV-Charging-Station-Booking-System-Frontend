@@ -66,10 +66,10 @@ const BookingManagement = () => {
       setShowCancelModal(true);
       return;
     }
-    
+
     try {
       console.log('Changing status for booking:', bookingId, 'to:', newStatus);
-      
+
       if (newStatus === "Approved") {
         await bookingService.approveBooking(bookingId);
         showSuccess(`Booking approved successfully! QR code generated.`);

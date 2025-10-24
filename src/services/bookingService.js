@@ -58,8 +58,8 @@ const makeApiRequest = async (requestFn) => {
 
     throw new Error(
       error.response?.data?.message ||
-      error.message ||
-      "An unexpected error occurred"
+        error.message ||
+        "An unexpected error occurred"
     );
   }
 };
@@ -209,8 +209,8 @@ export const bookingService = {
           reason,
           {
             headers: {
-              'Content-Type': 'application/json'
-            }
+              "Content-Type": "application/json",
+            },
           }
         );
         return response.data;
@@ -241,8 +241,8 @@ export const bookingService = {
           "Charging session completed successfully",
           {
             headers: {
-              'Content-Type': 'application/json'
-            }
+              "Content-Type": "application/json",
+            },
           }
         );
         return response.data;
@@ -329,10 +329,9 @@ export const bookingService = {
     }
 
     return makeApiRequest(async () => {
-      const response = await apiService.client.put(
-        `/booking/${bookingId}`,
-        { newReservationTime }
-      );
+      const response = await apiService.client.put(`/booking/${bookingId}`, {
+        newReservationTime,
+      });
       return response.data;
     });
   },
