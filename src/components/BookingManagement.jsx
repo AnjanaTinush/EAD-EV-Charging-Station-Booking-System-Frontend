@@ -66,7 +66,10 @@ const BookingManagement = () => {
       setShowCancelModal(true);
       return;
     }
+
     try {
+      console.log('Changing status for booking:', bookingId, 'to:', newStatus);
+
       if (newStatus === "Approved") {
         await bookingService.approveBooking(bookingId);
         showSuccess(`Booking approved successfully! QR code generated.`);
@@ -74,24 +77,31 @@ const BookingManagement = () => {
         await bookingService.completeBooking(bookingId);
         showSuccess(`Booking completed successfully!`);
       } else {
-        await bookingService.updateBookingStatus(bookingId, newStatus);
-        showSuccess(`Booking status updated to ${newStatus}`);
+        // For direct status updates, ensure proper case
+        const normalizedStatus = newStatus.charAt(0).toUpperCase() + newStatus.slice(1).toLowerCase();
+        await bookingService.updateBookingStatus(bookingId, normalizedStatus);
+        showSuccess(`Booking status updated to ${normalizedStatus}`);
       }
       fetchAllBookings();
     } catch (err) {
-      showError(`Failed to update booking status: ${err.message}`);
-      showErrorModal(err.message);
+      console.error("Status change error:", err);
+      const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred';
+      showError(`Failed to update booking status: ${errorMessage}`);
+      showErrorModal(errorMessage);
     }
   };
 
   const handleConfirmCancel = async (reason) => {
     try {
+      console.log('Cancelling booking:', cancelBookingId, 'with reason:', reason);
       await bookingService.cancelBooking(cancelBookingId, reason);
       showSuccess(`Booking cancelled successfully. Reason: ${reason}`);
       fetchAllBookings();
     } catch (err) {
-      showError(`Failed to cancel booking: ${err.message}`);
-      showErrorModal(err.message);
+      console.error('Cancel booking error:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred';
+      showError(`Failed to cancel booking: ${errorMessage}`);
+      showErrorModal(errorMessage);
     } finally {
       setShowCancelModal(false);
       setCancelBookingId(null);
@@ -147,14 +157,18 @@ const BookingManagement = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Approved":
+    if (!status) return "text-gray-600 bg-gray-100";
+
+    const statusLower = status.toString().toLowerCase().trim();
+    switch (statusLower) {
+      case "approved":
         return "text-green-600 bg-green-100";
-      case "Pending":
+      case "pending":
         return "text-yellow-600 bg-yellow-100";
-      case "Cancelled":
+      case "cancelled":
+      case "canceled":
         return "text-red-600 bg-red-100";
-      case "Completed":
+      case "completed":
         return "text-blue-600 bg-blue-100";
       default:
         return "text-gray-600 bg-gray-100";
@@ -163,7 +177,8 @@ const BookingManagement = () => {
 
   // Filter bookings based on status and search term
   const filteredBookings = bookings.filter((booking) => {
-    const matchesFilter = filter === "all" || booking.status === filter;
+    const matchesFilter = filter === "all" ||
+      (booking.status && booking.status.toLowerCase().trim() === filter.toLowerCase());
     const matchesSearch =
       booking.ownerNIC.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.id.toLowerCase().includes(searchTerm.toLowerCase()) ||

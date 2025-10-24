@@ -44,28 +44,39 @@ const DashboardDetails = ({ user }) => {
     return new Date(dateString).toLocaleString();
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Approved":
-        return "text-green-600 bg-green-100";
-      case "Pending":
-        return "text-yellow-600 bg-yellow-100";
-      case "Cancelled":
-        return "text-red-600 bg-red-100";
-      case "Completed":
-        return "text-blue-600 bg-blue-100";
-      default:
-        return "text-gray-600 bg-gray-100";
-    }
+  // Chart data for booking status distribution - Fixed status matching
+  const statusCounts = {
+    Pending: bookings.filter(
+      (b) =>
+        b.status &&
+        (b.status.toLowerCase() === "pending" || b.status === "pending")
+    ).length,
+    Approved: bookings.filter(
+      (b) =>
+        b.status &&
+        (b.status.toLowerCase() === "approved" || b.status === "approved")
+    ).length,
+    Completed: bookings.filter(
+      (b) =>
+        b.status &&
+        (b.status.toLowerCase() === "completed" || b.status === "completed")
+    ).length,
+    Cancelled: bookings.filter(
+      (b) =>
+        b.status &&
+        (b.status.toLowerCase() === "cancelled" ||
+          b.status.toLowerCase() === "canceled" ||
+          b.status === "cancelled")
+    ).length,
   };
 
-  // Chart data for booking status distribution
-  const statusCounts = {
-    Pending: bookings.filter((b) => b.status === "Pending").length,
-    Approved: bookings.filter((b) => b.status === "Approved").length,
-    Completed: bookings.filter((b) => b.status === "Completed").length,
-    Cancelled: bookings.filter((b) => b.status === "Cancelled").length,
-  };
+  // Debug log to see what data we're working with
+  console.log("Bookings data:", bookings);
+  console.log("Status counts:", statusCounts);
+  console.log(
+    "Sample booking statuses:",
+    bookings.slice(0, 3).map((b) => ({ id: b.id, status: b.status }))
+  );
 
   const chartData = [
     { status: "Pending", count: statusCounts.Pending, color: "#f59e0b" },
@@ -75,6 +86,25 @@ const DashboardDetails = ({ user }) => {
   ];
 
   const maxCount = Math.max(...Object.values(statusCounts), 1);
+
+  const getStatusColor = (status) => {
+    if (!status) return "text-gray-700 bg-gray-50 border-gray-200";
+
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case "approved":
+        return "text-green-800 bg-green-50 border-green-200";
+      case "pending":
+        return "text-yellow-800 bg-yellow-50 border-yellow-200";
+      case "cancelled":
+      case "canceled":
+        return "text-red-800 bg-red-50 border-red-200";
+      case "completed":
+        return "text-blue-800 bg-blue-50 border-blue-200";
+      default:
+        return "text-gray-700 bg-gray-50 border-gray-200";
+    }
+  };
 
   if (showBookingManagement) {
     return <BookingManagement />;
@@ -240,10 +270,22 @@ const DashboardDetails = ({ user }) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(
+                        className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full border shadow-sm ${getStatusColor(
                           booking.status
                         )}`}
                       >
+                        <span
+                          className={`w-1.5 h-1.5 mr-2 rounded-full ${booking.status?.toLowerCase() === "pending"
+                              ? "bg-yellow-400"
+                              : booking.status?.toLowerCase() === "approved"
+                                ? "bg-green-400"
+                                : booking.status?.toLowerCase() === "completed"
+                                  ? "bg-blue-400"
+                                  : booking.status?.toLowerCase() === "cancelled"
+                                    ? "bg-red-400"
+                                    : "bg-gray-400"
+                            }`}
+                        ></span>
                         {booking.status}
                       </span>
                     </td>
@@ -303,7 +345,7 @@ const DashboardDetails = ({ user }) => {
                 {upcomingBookings.slice(0, 5).map((booking) => {
                   const daysUntil = Math.ceil(
                     (new Date(booking.reservationTime) - new Date()) /
-                      (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24)
                   );
                   return (
                     <tr key={booking.id} className="hover:bg-gray-50">
@@ -318,10 +360,22 @@ const DashboardDetails = ({ user }) => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(
+                          className={`inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-full border shadow-sm ${getStatusColor(
                             booking.status
                           )}`}
                         >
+                          <span
+                            className={`w-1.5 h-1.5 mr-2 rounded-full ${booking.status?.toLowerCase() === "pending"
+                                ? "bg-yellow-400"
+                                : booking.status?.toLowerCase() === "approved"
+                                  ? "bg-green-400"
+                                  : booking.status?.toLowerCase() === "completed"
+                                    ? "bg-blue-400"
+                                    : booking.status?.toLowerCase() === "cancelled"
+                                      ? "bg-red-400"
+                                      : "bg-gray-400"
+                              }`}
+                          ></span>
                           {booking.status}
                         </span>
                       </td>
