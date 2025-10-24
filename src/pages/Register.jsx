@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { trackLogin } from '../utils/loginTracker';
+import { useErrorContext } from '../contexts/ErrorContext';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -11,11 +12,12 @@ export default function Register() {
     nic: '',
     password: '',
     confirmPassword: '',
-    role: 'Customer'
+    nic: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { showError } = useErrorContext();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,16 +31,19 @@ export default function Register() {
     e.preventDefault();
     setError('');
 
+    // Client-side confirm password validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
-
     setIsLoading(true);
 
     try {
-      const { confirmPassword, ...userData } = formData;
-      const result = await authAPI.register(userData);
+  // Build payload with only the allowed fields
+  const { username, email, phone, password, nic } = formData;
+  const userData = { username, email, phone, password, nic };
+  const result = await authAPI.register(userData);
       localStorage.setItem('token', result.token);
       localStorage.setItem('user', JSON.stringify(result.user));
 
@@ -47,7 +52,11 @@ export default function Register() {
 
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message);
+      // Show only the server-provided message (e.g. "Email already exists!")
+      const msg = err && err.message ? err.message : 'Registration failed';
+      setError(msg);
+      // also show the validation popup for clearer UX
+      showError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -141,9 +150,9 @@ export default function Register() {
             <div className="ev-form-group">
               <label htmlFor="nic" className="ev-label flex items-center space-x-2">
                 <svg className="w-4 h-4 text-ev-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span>National ID (NIC)</span>
+                <span>NIC</span>
               </label>
               <input
                 id="nic"
@@ -153,7 +162,7 @@ export default function Register() {
                 value={formData.nic}
                 onChange={handleChange}
                 className="ev-input w-full text-gray-900 placeholder-gray-500"
-                placeholder="Enter your National ID number"
+                placeholder="Enter your NIC number"
               />
             </div>
 
@@ -193,25 +202,6 @@ export default function Register() {
                 className="ev-input w-full text-gray-900 placeholder-gray-500"
                 placeholder="Confirm your password"
               />
-            </div>
-
-            <div className="ev-form-group">
-              <label htmlFor="role" className="ev-label flex items-center space-x-2">
-                <svg className="w-4 h-4 text-ev-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                <span>Account Type</span>
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="ev-input w-full text-gray-900 bg-white"
-              >
-                <option value="Customer">Customer - Access charging stations</option>
-                <option value="Backoffice">Backoffice - Manage operations</option>
-              </select>
             </div>
           </div>
 
