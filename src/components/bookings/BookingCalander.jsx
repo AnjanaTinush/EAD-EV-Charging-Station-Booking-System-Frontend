@@ -221,13 +221,15 @@ const BookingCalendar = () => {
             return (
               <div
                 key={index}
-                className={`min-h-[120px] p-2 border-r border-b border-gray-200 cursor-pointer transition-colors hover:bg-slate-50 ${!isCurrentMonthDay ? "bg-gray-100 text-gray-400" : ""
-                  } ${isToday(date) ? "bg-blue-50 border-blue-300" : ""}`}
+                className={`min-h-[120px] p-2 border-r border-b border-gray-200 cursor-pointer transition-colors hover:bg-slate-50 ${
+                  !isCurrentMonthDay ? "bg-gray-100 text-gray-400" : ""
+                } ${isToday(date) ? "bg-blue-50 border-blue-300" : ""}`}
                 onClick={() => setSelectedDate(date)}
               >
                 <div
-                  className={`text-sm font-medium mb-1 ${isToday(date) ? "text-blue-600 font-bold" : ""
-                    }`}
+                  className={`text-sm font-medium mb-1 ${
+                    isToday(date) ? "text-blue-600 font-bold" : ""
+                  }`}
                 >
                   {date.getDate()}
                 </div>
@@ -242,8 +244,9 @@ const BookingCalendar = () => {
                       )} shadow-sm`}
                       title={`${getStationName(
                         booking.stationId
-                      )} - ${formatTime(booking.reservationTime)} - ${booking.status
-                        }`}
+                      )} - ${formatTime(booking.reservationTime)} - ${
+                        booking.status
+                      }`}
                     >
                       {formatTime(booking.reservationTime)} -{" "}
                       {getStationName(booking.stationId).substring(0, 10)}
@@ -292,12 +295,15 @@ const BookingCalendar = () => {
                   {hourBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className={`mb-2 p-3 rounded-lg border-l-4 ${getStatusBgColor(booking.status)} ${getStatusBorderColor(booking.status)}`}
+                      className={`mb-2 p-3 rounded-lg border-l-4 ${getStatusBgColor(
+                        booking.status
+                      )} ${getStatusBorderColor(booking.status)}`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-semibold text-slate-800">
-                            {formatTime(booking.reservationTime)} - {getStationName(booking.stationId)}
+                            {formatTime(booking.reservationTime)} -{" "}
+                            {getStationName(booking.stationId)}
                           </div>
                           <div className="text-sm text-slate-600">
                             Owner: {booking.ownerNIC}
@@ -341,14 +347,20 @@ const BookingCalendar = () => {
             {dayBookings.map((booking) => (
               <div
                 key={booking.id}
-                className={`p-4 border-l-4 rounded-lg ${getStatusBgColor(booking.status)} ${getStatusBorderColor(booking.status)}`}
+                className={`p-4 border-l-4 rounded-lg ${getStatusBgColor(
+                  booking.status
+                )} ${getStatusBorderColor(booking.status)}`}
               >
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="text-lg font-semibold text-slate-800">
                       {getStationName(booking.stationId)}
                     </div>
-                    <div className={`text-sm font-medium ${getStatusTextColor(booking.status)}`}>
+                    <div
+                      className={`text-sm font-medium ${getStatusTextColor(
+                        booking.status
+                      )}`}
+                    >
                       Time: {formatTime(booking.reservationTime)}
                     </div>
                     <div className="text-sm text-slate-600">
@@ -418,10 +430,11 @@ const BookingCalendar = () => {
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${viewMode === mode
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    viewMode === mode
                       ? "bg-slate-600 text-white"
                       : "text-slate-700 hover:text-slate-900"
-                    }`}
+                  }`}
                 >
                   {mode.charAt(0).toUpperCase() + mode.slice(1)}
                 </button>
