@@ -9,6 +9,7 @@ export default function Register() {
     username: '',
     email: '',
     phone: '',
+    nic: '',
     password: '',
     confirmPassword: '',
     nic: ''

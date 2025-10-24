@@ -4,7 +4,9 @@ import { apiService } from './SecureApiService.js';
 // Input validation schema for Station
 const stationValidationSchema = {
   name: { required: true, minLength: 3, maxLength: 100 },
-  location: { required: true, minLength: 3, maxLength: 100 },
+  location: { required: true, minLength: 3, maxLength: 250 },
+  // coordinates must be present as [longitude, latitude]
+  coordinates: { required: true, type: 'array' },
   type: { required: true }, // must be "AC" or "DC"
   availableSlots: { required: true, type: 'number', min: 0 },
   isActive: { required: false, type: 'boolean' } // optional
@@ -26,6 +28,26 @@ const validateInput = (data, schema) => {
     if (value) {
       if (rules.type === 'number' && isNaN(Number(value))) {
         errors.push(`${field} must be a number`);
+      }
+
+      // basic array validation for coordinates
+      if (rules.type === 'array' && !Array.isArray(value)) {
+        errors.push(`${field} must be an array`);
+      }
+
+      // additional coordinates checks
+      if (field === 'coordinates' && Array.isArray(value)) {
+        if (value.length !== 2) {
+          errors.push('coordinates must be an array of [longitude, latitude]');
+        } else {
+          const [lng, lat] = value;
+          if (isNaN(Number(lng)) || Number(lng) < -180 || Number(lng) > 180) {
+            errors.push('longitude must be a valid number between -180 and 180');
+          }
+          if (isNaN(Number(lat)) || Number(lat) < -90 || Number(lat) > 90) {
+            errors.push('latitude must be a valid number between -90 and 90');
+          }
+        }
       }
       
       if (rules.minLength && String(value).length < rules.minLength) {
@@ -265,7 +287,7 @@ export default class EnhancedStationService {
   
   // Sanitize input data
   static sanitizeStationData(data) {
-  const allowedFields = ["id", "name", "location", "type", "availableSlots", "isActive"];
+  const allowedFields = ["id", "name", "location", "coordinates", "type", "availableSlots", "isActive"];
     const sanitized = {};
     
     allowedFields.forEach(field => {
