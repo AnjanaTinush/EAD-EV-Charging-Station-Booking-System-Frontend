@@ -78,34 +78,55 @@ const BookingCalendar = () => {
     });
   };
 
-  // Get booking status color
+  // Get booking status color - Updated with proper Tailwind classes
   const getStatusColor = (status) => {
     switch (status) {
       case "Pending":
-        return "bg-yellow-500";
+        return "bg-yellow-500 hover:bg-yellow-600";
       case "Approved":
-        return "bg-green-500";
+        return "bg-green-500 hover:bg-green-600";
       case "Completed":
-        return "bg-blue-500";
+        return "bg-blue-500 hover:bg-blue-600";
       case "Cancelled":
-        return "bg-red-500";
+        return "bg-red-500 hover:bg-red-600";
       default:
-        return "bg-gray-500";
+        return "bg-gray-500 hover:bg-gray-600";
     }
   };
 
-  // Check if date is today
+  // Get status text color for details
+  const getStatusTextColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return "text-yellow-800 bg-yellow-100 border-yellow-200";
+      case "Approved":
+        return "text-green-800 bg-green-100 border-green-200";
+      case "Completed":
+        return "text-blue-800 bg-blue-100 border-blue-200";
+      case "Cancelled":
+        return "text-red-800 bg-red-100 border-red-200";
+      default:
+        return "text-gray-800 bg-gray-100 border-gray-200";
+    }
+  };
+
+  // Helper functions (you may need to add these if they're not imported)
+  const isCurrentMonth = (date) => {
+    return date.getMonth() === currentDate.getMonth();
+  };
+
   const isToday = (date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
   };
 
-  // Check if date is in current month
-  const isCurrentMonth = (date) => {
-    return date.getMonth() === currentDate.getMonth();
+  const formatTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
-  // Format date for display
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
       weekday: "long",
@@ -115,15 +136,6 @@ const BookingCalendar = () => {
     });
   };
 
-  // Format time for display
-  const formatTime = (dateString) => {
-    return new Date(dateString).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // Get station name by ID
   const getStationName = (stationId) => {
     const station = stations.find((s) => s.id === stationId);
     return station ? station.name : "Unknown Station";
@@ -170,26 +182,30 @@ const BookingCalendar = () => {
                   {date.getDate()}
                 </div>
 
-                {/* Booking indicators */}
+                {/* Booking indicators - Fixed styling */}
                 <div className="space-y-1">
                   {dayBookings.slice(0, 3).map((booking) => (
                     <div
                       key={booking.id}
-                      className={`text-xs p-1 rounded text-white truncate ${getStatusColor(
+                      className={`text-xs p-1 rounded text-white truncate transition-colors cursor-pointer ${getStatusColor(
                         booking.status
                       )}`}
                       title={`${getStationName(
                         booking.stationId
                       )} - ${formatTime(booking.reservationTime)} - ${
                         booking.status
-                      }`}
+                      } - Owner: ${booking.ownerNIC}`}
                     >
-                      {formatTime(booking.reservationTime)} -{" "}
-                      {getStationName(booking.stationId).substring(0, 10)}
+                      <div className="font-medium">
+                        {formatTime(booking.reservationTime)}
+                      </div>
+                      <div className="text-xs truncate opacity-90">
+                        {getStationName(booking.stationId).substring(0, 15)}
+                      </div>
                     </div>
                   ))}
                   {dayBookings.length > 3 && (
-                    <div className="text-xs font-medium text-gray-500">
+                    <div className="p-1 text-xs font-medium text-gray-600 bg-gray-200 rounded">
                       +{dayBookings.length - 3} more
                     </div>
                   )}
@@ -223,24 +239,26 @@ const BookingCalendar = () => {
             });
 
             return (
-              <div key={hour} className="flex border-b border-gray-100">
-                <div className="w-16 p-2 text-sm font-medium text-gray-500 border-r border-gray-200">
+              <div
+                key={hour}
+                className="flex border-b border-gray-100 min-h-[60px]"
+              >
+                <div className="flex items-start w-16 p-2 text-sm font-medium text-gray-500 border-r border-gray-200">
                   {hour.toString().padStart(2, "0")}:00
                 </div>
                 <div className="flex-1 p-2">
                   {hourBookings.map((booking) => (
                     <div
                       key={booking.id}
-                      className={`mb-1 p-2 rounded text-white text-sm ${getStatusColor(
+                      className={`mb-1 p-2 rounded text-white text-xs ${getStatusColor(
                         booking.status
                       )}`}
                     >
                       <div className="font-medium">
-                        {formatTime(booking.reservationTime)} -{" "}
                         {getStationName(booking.stationId)}
                       </div>
-                      <div className="text-xs opacity-90">
-                        Owner: {booking.ownerNIC} | Status: {booking.status}
+                      <div className="opacity-90">
+                        {formatTime(booking.reservationTime)} - {booking.status}
                       </div>
                     </div>
                   ))}
@@ -253,9 +271,18 @@ const BookingCalendar = () => {
     );
   };
 
-  // Selected date details
+  // Date details component
   const DateDetails = () => {
-    if (!selectedDate) return null;
+    if (!selectedDate) {
+      return (
+        <div className="p-4 bg-white rounded-lg shadow">
+          <div className="py-8 text-center">
+            <div className="mb-2 text-4xl">📅</div>
+            <p className="text-gray-500">Select a date to view details</p>
+          </div>
+        </div>
+      );
+    }
 
     const dayBookings = getBookingsForDate(selectedDate);
 
@@ -266,33 +293,54 @@ const BookingCalendar = () => {
         </h3>
 
         {dayBookings.length === 0 ? (
-          <p className="text-gray-500">No bookings for this date</p>
+          <div className="py-8 text-center">
+            <div className="mb-2 text-4xl">📅</div>
+            <p className="text-gray-500">No bookings for this date</p>
+          </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {dayBookings.map((booking) => (
               <div
                 key={booking.id}
-                className="p-3 border border-gray-200 rounded"
+                className="p-3 transition-shadow border border-gray-200 rounded-lg hover:shadow-md"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-medium text-gray-900">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">
                       {getStationName(booking.stationId)}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Time: {formatTime(booking.reservationTime)}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Owner: {booking.ownerNIC}
+                    <div className="mt-1 text-xs text-gray-600">
+                      ID: {booking.stationId.slice(-8)}...
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs font-semibold text-white rounded ${getStatusColor(
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusTextColor(
                       booking.status
                     )}`}
                   >
                     {booking.status}
                   </span>
+                </div>
+
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Time:</span>
+                    <span className="font-medium text-gray-900">
+                      {formatTime(booking.reservationTime)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Owner:</span>
+                    <span className="font-medium text-gray-900">
+                      {booking.ownerNIC}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Booking ID:</span>
+                    <span className="font-mono text-xs text-gray-600">
+                      {booking.id.slice(-8)}...
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -385,22 +433,41 @@ const BookingCalendar = () => {
         </div>
       </div>
 
-      {/* Legend */}
-      {/* Legend */}
+      {/* Legend - Fixed syntax error */}
       <div className="p-4 bg-white rounded-lg shadow">
         <h3 className="mb-3 text-sm font-medium text-gray-900">
           Status Legend
         </h3>
         <div className="flex flex-wrap gap-4">
           {[
-            { status: "Pending", color: "bg-yellow-500" },
-            { status: "Approved", color: "bg-green-500" },
-            { status: "Completed", color: "bg-blue-500" },
-            { status: "Cancelled", color: "bg-red-500" },
+            {
+              status: "Pending",
+              color: "bg-yellow-500",
+              count: bookings.filter((b) => b.status === "Pending").length,
+            },
+            {
+              status: "Approved",
+              color: "bg-green-500",
+              count: bookings.filter((b) => b.status === "Approved").length,
+            },
+            {
+              status: "Completed",
+              color: "bg-blue-500",
+              count: bookings.filter((b) => b.status === "Completed").length,
+            },
+            {
+              status: "Cancelled",
+              color: "bg-red-500",
+              count: bookings.filter((b) => b.status === "Cancelled").length,
+            },
           ].map((item) => (
             <div key={item.status} className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded ${item.color}`}></div>
-              <span className="text-sm text-gray-700">{item.status}</span>
+              <div
+                className={`w-4 h-4 rounded ${item.color} border border-gray-300`}
+              ></div>
+              <span className="text-sm text-gray-700">
+                {item.status} ({item.count})
+              </span>
             </div>
           ))}
         </div>

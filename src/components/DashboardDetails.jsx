@@ -45,14 +45,16 @@ const DashboardDetails = ({ user }) => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Approved":
+    const statusLower = status ? status.toLowerCase() : "";
+    switch (statusLower) {
+      case "approved":
         return "text-green-600 bg-green-100";
-      case "Pending":
+      case "pending":
         return "text-yellow-600 bg-yellow-100";
-      case "Cancelled":
+      case "cancelled":
+      case "canceled":
         return "text-red-600 bg-red-100";
-      case "Completed":
+      case "completed":
         return "text-blue-600 bg-blue-100";
       default:
         return "text-gray-600 bg-gray-100";
@@ -61,11 +63,30 @@ const DashboardDetails = ({ user }) => {
 
   // Chart data for booking status distribution
   const statusCounts = {
-    Pending: bookings.filter((b) => b.status === "Pending").length,
-    Approved: bookings.filter((b) => b.status === "Approved").length,
-    Completed: bookings.filter((b) => b.status === "Completed").length,
-    Cancelled: bookings.filter((b) => b.status === "Cancelled").length,
+    Pending: bookings.filter(
+      (b) => b.status && b.status.toLowerCase() === "pending"
+    ).length,
+    Approved: bookings.filter(
+      (b) => b.status && b.status.toLowerCase() === "approved"
+    ).length,
+    Completed: bookings.filter(
+      (b) => b.status && b.status.toLowerCase() === "completed"
+    ).length,
+    Cancelled: bookings.filter(
+      (b) =>
+        b.status &&
+        (b.status.toLowerCase() === "cancelled" ||
+          b.status.toLowerCase() === "canceled")
+    ).length,
   };
+
+  // Debug log to see what data we're working with
+  console.log("Bookings data:", bookings);
+  console.log("Status counts:", statusCounts);
+  console.log(
+    "Sample booking statuses:",
+    bookings.slice(0, 3).map((b) => b.status)
+  );
 
   const chartData = [
     { status: "Pending", count: statusCounts.Pending, color: "#f59e0b" },
