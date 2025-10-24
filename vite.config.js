@@ -6,8 +6,9 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, '.', '')
   
-  // Get backend URL from environment or use default
-  const backendTarget = env.VITE_BACKEND_URL || 'http://localhost:7179'
+  // Get backend URL from environment or use local backend on port 8080 by default
+  // Set VITE_BACKEND_URL in your .env if you need a different target
+  const backendTarget = env.VITE_BACKEND_URL || 'http://localhost:8080'
   const enableProxyLogs = env.VITE_ENABLE_PROXY_LOGS === 'true'
 
   return {
@@ -27,7 +28,9 @@ export default defineConfig(({ mode }) => {
             // Only show detailed logs if enabled in .env
             if (enableProxyLogs) {
               proxy.on('proxyReq', (proxyReq, req) => {
-                console.log('🚀 Proxying:', req.method, req.url, '→', backendTarget + req.url);
+                // Normalize to avoid double slashes when backendTarget ends with '/'
+                const target = backendTarget.replace(/\/$/, '');
+                console.log('🚀 Proxying:', req.method, req.url, '→', target + req.url);
               });
               proxy.on('proxyRes', (proxyRes, req) => {
                 console.log('✅ Response:', proxyRes.statusCode, req.url);
