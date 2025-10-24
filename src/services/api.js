@@ -1,5 +1,5 @@
 // Use environment variable or fallback to proxy path
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const fetchWithCORS = async (url, options = {}) => {
   const defaultOptions = {
@@ -47,13 +47,11 @@ export const authAPI = {
       email: userData.email,
       phone: userData.phone,
       password: userData.password,
+      nic: userData.nic,
       role: userData.role || "StationOperator",
     };
 
-    // Allow a sensible default for local development if VITE_API_URL is not set
-    const base = API_BASE_URL || 'http://localhost:8080/api';
-
-    return fetchWithCORS(`http://localhost:8080/api/auth/register`, {
+    return fetchWithCORS(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       body: JSON.stringify(payload),
     });
