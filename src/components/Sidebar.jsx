@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function Sidebar({ activeSection, setActiveSection }) {
   const navigate = useNavigate();
@@ -36,6 +37,15 @@ export default function Sidebar({ activeSection, setActiveSection }) {
       icon: (
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+        </svg>
+      )
+    },
+    { 
+      id: 'payments', 
+      label: 'Payments', 
+      icon: (
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M2 7a2 2 0 012-2h16a2 2 0 012 2v2H2V7zm0 4h20v6a2 2 0 01-2 2H4a2 2 0 01-2-2v-6zM6 12v4h12v-4H6z"/>
         </svg>
       )
     },
@@ -86,6 +96,24 @@ export default function Sidebar({ activeSection, setActiveSection }) {
     }
   ];
 
+  // If logged in as StationOperator, limit visible items to a small subset
+  const role = user.role || user?.role;
+  const stationOperatorAllowed = ['payments', 'profile', 'settings', 'loginHistory'];
+  const visibleMenu = role === 'StationOperator'
+    ? menuItems.filter((m) => stationOperatorAllowed.includes(m.id))
+    : menuItems;
+
+  // Ensure activeSection is one of the visible items for this user
+  useEffect(() => {
+    if (!visibleMenu || visibleMenu.length === 0) return;
+    const ids = visibleMenu.map((m) => m.id);
+    if (!ids.includes(activeSection)) {
+      // Default to first visible item
+      setActiveSection(visibleMenu[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen shadow-2xl ev-sidebar w-72">
       {/* Header */}
@@ -110,7 +138,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
       {/* Navigation Menu */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {menuItems.map((item) => (
+          {visibleMenu.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => setActiveSection(item.id)}

@@ -6,6 +6,7 @@ import StationManagement from "../components/StationManagement";
 import BookingManagement from "../components/BookingManagement";
 import DashboardDetails from "../components/DashboardDetails";
 import ManageAccess from "../components/ManageAccess";
+import PaymentManagement from "../components/PaymentManagement";
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -94,6 +95,8 @@ export default function Dashboard() {
         }} />;
       case "users":
         return <UserManagement />;
+      case "payments":
+        return <PaymentManagement />;
       case "access":
         return <ManageAccess />;
       case "loginHistory":
