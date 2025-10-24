@@ -146,7 +146,7 @@ export const bookingService = {
       throw new Error("Status is required");
     }
 
-    // Only allow status changes except "Approved"
+    // Validate status - API expects exact case: Pending, Cancelled, Completed
     const validStatuses = ["Pending", "Cancelled", "Completed"];
     if (!validStatuses.includes(status)) {
       throw new Error(
@@ -178,7 +178,7 @@ export const bookingService = {
     return makeApiRequest(async () => {
       const response = await apiService.client.post(
         `/booking/${bookingId}/approve`,
-        { approve: true }
+        true // Send boolean true directly as shown in the API response
       );
       return response.data;
     });
@@ -195,11 +195,26 @@ export const bookingService = {
     if (!reason) throw new Error("Cancellation reason is required");
 
     return makeApiRequest(async () => {
-      const response = await apiService.client.post(
-        `/booking/${bookingId}/cancel`,
-        { reason }
-      );
-      return response.data;
+      // Try sending as JSON object first
+      try {
+        const response = await apiService.client.post(
+          `/booking/${bookingId}/cancel`,
+          { reason: reason }
+        );
+        return response.data;
+      } catch (error) {
+        // If that fails, try sending as plain string
+        const response = await apiService.client.post(
+          `/booking/${bookingId}/cancel`,
+          reason,
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        return response.data;
+      }
     });
   },
 
@@ -212,11 +227,26 @@ export const bookingService = {
     if (!bookingId) throw new Error("Booking ID is required");
 
     return makeApiRequest(async () => {
-      const response = await apiService.client.post(
-        `/booking/${bookingId}/complete`,
-        { notes: "Charging session completed successfully" }
-      );
-      return response.data;
+      // Try sending as JSON object first
+      try {
+        const response = await apiService.client.post(
+          `/booking/${bookingId}/complete`,
+          { notes: "Charging session completed successfully" }
+        );
+        return response.data;
+      } catch (error) {
+        // If that fails, try sending as plain string
+        const response = await apiService.client.post(
+          `/booking/${bookingId}/complete`,
+          "Charging session completed successfully",
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        return response.data;
+      }
     });
   },
 

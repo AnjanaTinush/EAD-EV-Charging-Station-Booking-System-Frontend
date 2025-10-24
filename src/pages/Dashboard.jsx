@@ -74,7 +74,24 @@ export default function Dashboard() {
       case "stations":
         return <StationManagement />;
       case "bookings":
-        return <BookingManagement />;
+        return <BookingManagement getStatusColor={(status) => {
+          if (!status) return "text-gray-700 bg-gray-50 border-gray-200 shadow-sm";
+
+          const statusLower = status.toString().toLowerCase().trim();
+          switch (statusLower) {
+            case "pending":
+              return "text-yellow-800 bg-yellow-50 border border-yellow-200 shadow-sm";
+            case "approved":
+              return "text-green-800 bg-green-50 border border-green-200 shadow-sm";
+            case "completed":
+              return "text-blue-800 bg-blue-50 border border-blue-200 shadow-sm";
+            case "cancelled":
+            case "canceled":
+              return "text-red-800 bg-red-50 border border-red-200 shadow-sm";
+            default:
+              return "text-gray-700 bg-gray-50 border border-gray-200 shadow-sm";
+          }
+        }} />;
       case "users":
         return <UserManagement />;
       case "access":
@@ -256,11 +273,10 @@ export default function Dashboard() {
                 </label>
                 <div className="mt-1">
                   <span
-                    className={`inline-flex px-4 py-2 text-sm font-semibold rounded-full ${
-                      user.role === "Backoffice"
-                        ? "ev-badge-info"
-                        : "ev-badge-success"
-                    }`}
+                    className={`inline-flex px-4 py-2 text-sm font-semibold rounded-full ${user.role === "Backoffice"
+                      ? "ev-badge-info"
+                      : "ev-badge-success"
+                      }`}
                   >
                     {user.role}
                   </span>

@@ -78,63 +78,34 @@ const BookingCalendar = () => {
     });
   };
 
-  // Get booking status color - Updated with proper Tailwind classes
+  // Get booking status color
   const getStatusColor = (status) => {
-    if (!status) return "bg-gray-500 hover:bg-gray-600";
-
-    const statusLower = status.toLowerCase();
-    switch (statusLower) {
-      case "pending":
-        return "bg-yellow-500 hover:bg-yellow-600 text-white";
-      case "approved":
-        return "bg-green-500 hover:bg-green-600 text-white";
-      case "completed":
-        return "bg-blue-500 hover:bg-blue-600 text-white";
-      case "cancelled":
-      case "canceled":
-        return "bg-red-500 hover:bg-red-600 text-white";
+    switch (status) {
+      case "Pending":
+        return "bg-yellow-500";
+      case "Approved":
+        return "bg-green-500";
+      case "Completed":
+        return "bg-blue-500";
+      case "Cancelled":
+        return "bg-red-500";
       default:
-        return "bg-gray-500 hover:bg-gray-600 text-white";
+        return "bg-gray-500";
     }
   };
 
-  // Get status text color for details
-  const getStatusTextColor = (status) => {
-    if (!status) return "text-gray-800 bg-gray-100 border-gray-200";
-
-    const statusLower = status.toLowerCase();
-    switch (statusLower) {
-      case "pending":
-        return "text-yellow-800 bg-yellow-100 border-yellow-200";
-      case "approved":
-        return "text-green-800 bg-green-100 border-green-200";
-      case "completed":
-        return "text-blue-800 bg-blue-100 border-blue-200";
-      case "cancelled":
-      case "canceled":
-        return "text-red-800 bg-red-100 border-red-200";
-      default:
-        return "text-gray-800 bg-gray-100 border-gray-200";
-    }
-  };
-
-  // Helper functions (you may need to add these if they're not imported)
-  const isCurrentMonth = (date) => {
-    return date.getMonth() === currentDate.getMonth();
-  };
-
+  // Check if date is today
   const isToday = (date) => {
     const today = new Date();
     return date.toDateString() === today.toDateString();
   };
 
-  const formatTime = (dateString) => {
-    return new Date(dateString).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  // Check if date is in current month
+  const isCurrentMonth = (date) => {
+    return date.getMonth() === currentDate.getMonth();
   };
 
+  // Format date for display
   const formatDate = (date) => {
     return date.toLocaleDateString("en-US", {
       weekday: "long",
@@ -144,6 +115,15 @@ const BookingCalendar = () => {
     });
   };
 
+  // Format time for display
+  const formatTime = (dateString) => {
+    return new Date(dateString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Get station name by ID
   const getStationName = (stationId) => {
     const station = stations.find((s) => s.id === stationId);
     return station ? station.name : "Unknown Station";
@@ -177,40 +157,39 @@ const BookingCalendar = () => {
             return (
               <div
                 key={index}
-                className={`min-h-[120px] p-2 border-r border-b border-gray-200 cursor-pointer transition-colors hover:bg-gray-50 ${!isCurrentMonthDay ? "bg-gray-100 text-gray-400" : ""
-                  } ${isToday(date) ? "bg-blue-50 border-blue-200" : ""}`}
+                className={`min-h-[120px] p-2 border-r border-b border-gray-200 cursor-pointer transition-colors hover:bg-gray-50 ${
+                  !isCurrentMonthDay ? "bg-gray-100 text-gray-400" : ""
+                } ${isToday(date) ? "bg-blue-50 border-blue-200" : ""}`}
                 onClick={() => setSelectedDate(date)}
               >
                 <div
-                  className={`text-sm font-medium mb-1 ${isToday(date) ? "text-blue-600" : ""
-                    }`}
+                  className={`text-sm font-medium mb-1 ${
+                    isToday(date) ? "text-blue-600" : ""
+                  }`}
                 >
                   {date.getDate()}
                 </div>
 
-                {/* Booking indicators - Fixed styling */}
+                {/* Booking indicators */}
                 <div className="space-y-1">
                   {dayBookings.slice(0, 3).map((booking) => (
                     <div
                       key={booking.id}
-                      className={`text-xs p-1 rounded text-white truncate transition-colors cursor-pointer ${getStatusColor(
+                      className={`text-xs p-1 rounded text-white truncate ${getStatusColor(
                         booking.status
                       )}`}
                       title={`${getStationName(
                         booking.stationId
-                      )} - ${formatTime(booking.reservationTime)} - ${booking.status
-                        } - Owner: ${booking.ownerNIC}`}
+                      )} - ${formatTime(booking.reservationTime)} - ${
+                        booking.status
+                      }`}
                     >
-                      <div className="font-medium">
-                        {formatTime(booking.reservationTime)}
-                      </div>
-                      <div className="text-xs truncate opacity-90">
-                        {getStationName(booking.stationId).substring(0, 15)}
-                      </div>
+                      {formatTime(booking.reservationTime)} -{" "}
+                      {getStationName(booking.stationId).substring(0, 10)}
                     </div>
                   ))}
                   {dayBookings.length > 3 && (
-                    <div className="text-xs font-medium text-blue-600">
+                    <div className="text-xs font-medium text-gray-500">
                       +{dayBookings.length - 3} more
                     </div>
                   )}
@@ -225,134 +204,95 @@ const BookingCalendar = () => {
 
   // Day view component
   const DayView = () => {
-    const dayBookings = getBookingsForDate(currentDate);
+    const dayBookings = getBookingsForDate(selectedDate || currentDate);
+    const hours = Array.from({ length: 24 }, (_, i) => i);
 
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b border-gray-200">
-          <h3 className="font-medium text-gray-900">
-            {formatDate(currentDate)}
+          <h3 className="text-lg font-semibold text-gray-900">
+            {formatDate(selectedDate || currentDate)}
           </h3>
         </div>
-        <div className="p-4">
-          {dayBookings.length === 0 ? (
-            <p className="py-8 text-center text-gray-500">
-              No bookings for this date
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {dayBookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="p-3 transition-shadow border border-gray-200 rounded-lg hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">
-                        {getStationName(booking.stationId)}
-                      </div>
-                      <div className="mt-1 text-xs text-gray-600">
-                        ID: {booking.stationId.slice(-8)}...
-                      </div>
-                    </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusTextColor(
+
+        <div className="overflow-y-auto max-h-96">
+          {hours.map((hour) => {
+            const hourBookings = dayBookings.filter((booking) => {
+              const bookingHour = new Date(booking.reservationTime).getHours();
+              return bookingHour === hour;
+            });
+
+            return (
+              <div key={hour} className="flex border-b border-gray-100">
+                <div className="w-16 p-2 text-sm font-medium text-gray-500 border-r border-gray-200">
+                  {hour.toString().padStart(2, "0")}:00
+                </div>
+                <div className="flex-1 p-2">
+                  {hourBookings.map((booking) => (
+                    <div
+                      key={booking.id}
+                      className={`mb-1 p-2 rounded text-white text-sm ${getStatusColor(
                         booking.status
                       )}`}
                     >
-                      {booking.status}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Time:</span>
-                      <span className="font-medium text-gray-900">
-                        {formatTime(booking.reservationTime)}
-                      </span>
+                      <div className="font-medium">
+                        {formatTime(booking.reservationTime)} -{" "}
+                        {getStationName(booking.stationId)}
+                      </div>
+                      <div className="text-xs opacity-90">
+                        Owner: {booking.ownerNIC} | Status: {booking.status}
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Owner:</span>
-                      <span className="font-medium text-gray-900">
-                        {booking.ownerNIC}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Booking ID:</span>
-                      <span className="font-mono text-xs text-gray-600">
-                        {booking.id.slice(-8)}...
-                      </span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
   };
 
-  // Date details component
+  // Selected date details
   const DateDetails = () => {
-    const dateToShow = selectedDate || new Date();
-    const dayBookings = getBookingsForDate(dateToShow);
+    if (!selectedDate) return null;
+
+    const dayBookings = getBookingsForDate(selectedDate);
 
     return (
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="font-medium text-gray-900">
-            {selectedDate ? formatDate(selectedDate) : "Today's Bookings"}
-          </h3>
-        </div>
+      <div className="p-4 bg-white rounded-lg shadow">
+        <h3 className="mb-3 text-lg font-semibold text-gray-900">
+          Bookings for {formatDate(selectedDate)}
+        </h3>
+
         {dayBookings.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
-            No bookings for this date
-          </div>
+          <p className="text-gray-500">No bookings for this date</p>
         ) : (
-          <div className="p-4 space-y-3">
+          <div className="space-y-2">
             {dayBookings.map((booking) => (
               <div
                 key={booking.id}
-                className="p-3 transition-shadow border border-gray-200 rounded-lg hover:shadow-md"
+                className="p-3 border border-gray-200 rounded"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">
                       {getStationName(booking.stationId)}
                     </div>
-                    <div className="mt-1 text-xs text-gray-600">
-                      ID: {booking.stationId.slice(-8)}...
+                    <div className="text-sm text-gray-600">
+                      Time: {formatTime(booking.reservationTime)}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Owner: {booking.ownerNIC}
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusTextColor(
+                    className={`px-2 py-1 text-xs font-semibold text-white rounded ${getStatusColor(
                       booking.status
                     )}`}
                   >
                     {booking.status}
                   </span>
-                </div>
-
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Time:</span>
-                    <span className="font-medium text-gray-900">
-                      {formatTime(booking.reservationTime)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Owner:</span>
-                    <span className="font-medium text-gray-900">
-                      {booking.ownerNIC}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Booking ID:</span>
-                    <span className="font-mono text-xs text-gray-600">
-                      {booking.id.slice(-8)}...
-                    </span>
-                  </div>
                 </div>
               </div>
             ))}
@@ -409,10 +349,11 @@ const BookingCalendar = () => {
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${viewMode === mode
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    viewMode === mode
                       ? "bg-blue-600 text-white"
                       : "text-gray-700 hover:text-gray-900"
-                    }`}
+                  }`}
                 >
                   {mode.charAt(0).toUpperCase() + mode.slice(1)}
                 </button>
@@ -444,41 +385,22 @@ const BookingCalendar = () => {
         </div>
       </div>
 
-      {/* Legend - Fixed with proper status filtering */}
+      {/* Legend */}
+      {/* Legend */}
       <div className="p-4 bg-white rounded-lg shadow">
         <h3 className="mb-3 text-sm font-medium text-gray-900">
           Status Legend
         </h3>
         <div className="flex flex-wrap gap-4">
           {[
-            {
-              status: "Pending",
-              color: "bg-yellow-500",
-              count: bookings.filter((b) => b.status && b.status.toLowerCase() === "pending").length,
-            },
-            {
-              status: "Approved",
-              color: "bg-green-500",
-              count: bookings.filter((b) => b.status && b.status.toLowerCase() === "approved").length,
-            },
-            {
-              status: "Completed",
-              color: "bg-blue-500",
-              count: bookings.filter((b) => b.status && b.status.toLowerCase() === "completed").length,
-            },
-            {
-              status: "Cancelled",
-              color: "bg-red-500",
-              count: bookings.filter((b) => b.status && (b.status.toLowerCase() === "cancelled" || b.status.toLowerCase() === "canceled")).length,
-            },
+            { status: "Pending", color: "bg-yellow-500" },
+            { status: "Approved", color: "bg-green-500" },
+            { status: "Completed", color: "bg-blue-500" },
+            { status: "Cancelled", color: "bg-red-500" },
           ].map((item) => (
             <div key={item.status} className="flex items-center gap-2">
-              <div
-                className={`w-4 h-4 rounded ${item.color} border border-gray-300`}
-              ></div>
-              <span className="text-sm text-gray-700">
-                {item.status} ({item.count})
-              </span>
+              <div className={`w-3 h-3 rounded ${item.color}`}></div>
+              <span className="text-sm text-gray-700">{item.status}</span>
             </div>
           ))}
         </div>
@@ -494,7 +416,7 @@ const BookingCalendar = () => {
         </div>
       </div>
 
-      {/* Statistics - Fixed with proper status filtering */}
+      {/* Statistics */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <div className="p-4 bg-white rounded-lg shadow">
           <div className="text-2xl font-bold text-blue-600">
@@ -504,19 +426,19 @@ const BookingCalendar = () => {
         </div>
         <div className="p-4 bg-white rounded-lg shadow">
           <div className="text-2xl font-bold text-yellow-600">
-            {bookings.filter((b) => b.status && b.status.toLowerCase() === "pending").length}
+            {bookings.filter((b) => b.status === "Pending").length}
           </div>
           <div className="text-sm text-gray-600">Pending</div>
         </div>
         <div className="p-4 bg-white rounded-lg shadow">
           <div className="text-2xl font-bold text-green-600">
-            {bookings.filter((b) => b.status && b.status.toLowerCase() === "approved").length}
+            {bookings.filter((b) => b.status === "Approved").length}
           </div>
           <div className="text-sm text-gray-600">Approved</div>
         </div>
         <div className="p-4 bg-white rounded-lg shadow">
           <div className="text-2xl font-bold text-blue-600">
-            {bookings.filter((b) => b.status && b.status.toLowerCase() === "completed").length}
+            {bookings.filter((b) => b.status === "Completed").length}
           </div>
           <div className="text-sm text-gray-600">Completed</div>
         </div>
