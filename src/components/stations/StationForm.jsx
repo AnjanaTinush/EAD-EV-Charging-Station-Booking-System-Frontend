@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import LocationPicker from "./LocationPicker";
 
 export default function StationForm({ initialData, onSave, onClose }) {
   const [formData, setFormData] = useState({
     id: "",
     name: "",
     location: "",
+    coordinates: [0, 0], // [longitude, latitude] - MongoDB standard
     type: "AC",
     availableSlots: 0,
     isActive: true
@@ -12,9 +14,17 @@ export default function StationForm({ initialData, onSave, onClose }) {
   const [errors, setErrors] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   useEffect(() => {
-    if (initialData) setFormData(initialData);
+    if (initialData) {
+      // Ensure coordinates array exists and has proper format
+      const data = {
+        ...initialData,
+        coordinates: initialData.coordinates || [0, 0]
+      };
+      setFormData(data);
+    }
   }, [initialData]);
 
   const validateField = (name, value) => {
@@ -40,6 +50,20 @@ export default function StationForm({ initialData, onSave, onClose }) {
           newFieldErrors.availableSlots = 'Available slots must be between 1 and 50';
         } else {
           delete newFieldErrors.availableSlots;
+        }
+        break;
+      case 'coordinates':
+        if (!value || !Array.isArray(value) || value.length !== 2) {
+          newFieldErrors.coordinates = 'Coordinates must be an array with longitude and latitude';
+        } else {
+          const [lng, lat] = value;
+          if (isNaN(parseFloat(lng)) || parseFloat(lng) < -180 || parseFloat(lng) > 180) {
+            newFieldErrors.coordinates = 'Longitude must be between -180 and 180';
+          } else if (isNaN(parseFloat(lat)) || parseFloat(lat) < -90 || parseFloat(lat) > 90) {
+            newFieldErrors.coordinates = 'Latitude must be between -90 and 90';
+          } else {
+            delete newFieldErrors.coordinates;
+          }
         }
         break;
       default:
@@ -70,6 +94,7 @@ export default function StationForm({ initialData, onSave, onClose }) {
     // Validate all fields before submission
     validateField('name', formData.name);
     validateField('location', formData.location);
+    validateField('coordinates', formData.coordinates);
     validateField('availableSlots', formData.availableSlots);
     
     // Check if there are any field errors
@@ -87,6 +112,36 @@ export default function StationForm({ initialData, onSave, onClose }) {
       onClose();
     }
     setIsSubmitting(false);
+  };
+
+  const handleLocationChange = (lat, lng, locationName) => {
+    const coordinates = [parseFloat(lng), parseFloat(lat)]; // [longitude, latitude] - MongoDB standard
+
+    // Truncate location name if it's too long for validation/backend
+    const maxLocationLength = 250;
+    const truncatedLocation = locationName
+      ? (locationName.length > maxLocationLength ? locationName.slice(0, maxLocationLength) : locationName)
+      : formData.location;
+
+    setFormData({
+      ...formData,
+      coordinates: coordinates,
+      location: truncatedLocation // Use the fetched (possibly truncated) location name or keep existing
+    });
+    
+    // Validate the new coordinates
+    validateField('coordinates', coordinates);
+    if (locationName) {
+      validateField('location', locationName);
+    }
+  };
+
+  const openLocationPicker = () => {
+    setShowLocationPicker(true);
+  };
+
+  const closeLocationPicker = () => {
+    setShowLocationPicker(false);
   };
 
   return (
@@ -153,12 +208,79 @@ export default function StationForm({ initialData, onSave, onClose }) {
                 fieldErrors.location ? 'border-red-300 bg-red-50' : 'border-gray-300'
               }`}
               value={formData.location}
+              maxLength={250}
               onChange={handleChange}
               required
             />
             {fieldErrors.location && (
               <p className="text-red-600 text-sm mt-1">{fieldErrors.location}</p>
             )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Longitude *
+              </label>
+              <input
+                type="number"
+                name="longitude"
+                placeholder="e.g., 79.8612"
+                step="any"
+                className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
+                  fieldErrors.coordinates ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                }`}
+                value={formData.coordinates[0] || ''}
+                onChange={(e) => {
+                  const newCoordinates = [parseFloat(e.target.value) || 0, formData.coordinates[1] || 0];
+                  setFormData({...formData, coordinates: newCoordinates});
+                  validateField('coordinates', newCoordinates);
+                }}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Latitude *
+              </label>
+              <input
+                type="number"
+                name="latitude"
+                placeholder="e.g., 6.9271"
+                step="any"
+                className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
+                  fieldErrors.coordinates ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                }`}
+                value={formData.coordinates[1] || ''}
+                onChange={(e) => {
+                  const newCoordinates = [formData.coordinates[0] || 0, parseFloat(e.target.value) || 0];
+                  setFormData({...formData, coordinates: newCoordinates});
+                  validateField('coordinates', newCoordinates);
+                }}
+                required
+              />
+            </div>
+          </div>
+          
+          {fieldErrors.coordinates && (
+            <div className="text-center">
+              <p className="text-red-600 text-sm">{fieldErrors.coordinates}</p>
+            </div>
+          )}
+
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={openLocationPicker}
+              className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Select Location on Map</span>
+            </button>
           </div>
 
           <div>
@@ -233,6 +355,13 @@ export default function StationForm({ initialData, onSave, onClose }) {
             </button>
           </div>
         </form>
+
+        <LocationPicker
+          coordinates={formData.coordinates}
+          onLocationChange={handleLocationChange}
+          isOpen={showLocationPicker}
+          onClose={closeLocationPicker}
+        />
       </div>
     </div>
   );

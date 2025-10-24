@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Leaflet CSS for maps */
+@import 'leaflet/dist/leaflet.css';
+
 /* EV Charging Station Theme Components */
 @layer components {
   /* Primary button styles */
