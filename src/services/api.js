@@ -1,5 +1,6 @@
-// Use environment variable or fallback to proxy path
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Use environment variable or fallback to local backend during development
+// Change VITE_API_URL in your .env when deploying to production
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 const fetchWithCORS = async (url, options = {}) => {
   const defaultOptions = {
@@ -133,6 +134,7 @@ export const userAPI = {
       email: userData.email,
       phone: userData.phone,
       nic: userData.nic,
+      role: userData.role,
     };
 
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
