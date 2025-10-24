@@ -178,12 +178,7 @@ export default function LoginHistory() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Login History</h2>
         <div className="flex space-x-2">
-          <button
-            onClick={addTestLogin}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-          >
-            Add Test Login
-          </button>
+         
           <button
             onClick={loadLoginHistory}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
@@ -465,12 +460,8 @@ export default function LoginHistory() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Device
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Location
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    IP Address
-                  </th>
+                 
+                 
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
@@ -491,12 +482,8 @@ export default function LoginHistory() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {login.device}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {login.location}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                      {login.ipAddress}
-                    </td>
+                   
+                   
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         login.status === 'Success'

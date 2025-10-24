@@ -1,5 +1,5 @@
 // Use environment variable or fallback to proxy path
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const fetchWithCORS = async (url, options = {}) => {
   const defaultOptions = {
@@ -47,7 +47,8 @@ export const authAPI = {
       email: userData.email,
       phone: userData.phone,
       password: userData.password,
-      role: userData.role || "Customer",
+      nic: userData.nic,
+      role: userData.role || "StationOperator",
     };
 
     return fetchWithCORS(`${API_BASE_URL}/auth/register`, {
@@ -65,6 +66,7 @@ export const userAPI = {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
       },
     });
 
@@ -74,7 +76,9 @@ export const userAPI = {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    // Since API returns array directly, return it as is
+    return data;
   },
 
   createUser: async (userData) => {
@@ -84,6 +88,7 @@ export const userAPI = {
       email: userData.email,
       phone: userData.phone,
       role: userData.role,
+      nic: userData.nic,
     };
 
     const response = await fetch(`${API_BASE_URL}/users`, {
@@ -96,9 +101,26 @@ export const userAPI = {
     });
 
     if (!response.ok) {
+      // Get response as text first (can only read response body once)
       const errorText = await response.text();
       console.error("Create user error:", response.status, errorText);
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      
+      // Try to parse the text as JSON to extract the message
+      try {
+        const errorData = JSON.parse(errorText);
+        console.log("Parsed error data:", errorData); // Debug log
+        
+        // If it's JSON with a message field, extract ONLY the message content
+        if (errorData && errorData.message) {
+          throw new Error(errorData.message);
+        }
+        // If no message field, use the whole response
+        throw new Error(errorText);
+      } catch (parseError) {
+        console.log("JSON parse failed, using raw text:", errorText); // Debug log
+        // If JSON parsing fails, use the original error text
+        throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+      }
     }
 
     return response.json();
@@ -110,7 +132,7 @@ export const userAPI = {
       username: userData.username,
       email: userData.email,
       phone: userData.phone,
-      role: userData.role,
+      nic: userData.nic,
     };
 
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
@@ -123,9 +145,26 @@ export const userAPI = {
     });
 
     if (!response.ok) {
+      // Get response as text first (can only read response body once)
       const errorText = await response.text();
       console.error("Update user error:", response.status, errorText);
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      
+      // Try to parse the text as JSON to extract the message
+      try {
+        const errorData = JSON.parse(errorText);
+        console.log("Parsed error data:", errorData); // Debug log
+        
+        // If it's JSON with a message field, extract ONLY the message content
+        if (errorData && errorData.message) {
+          throw new Error(errorData.message);
+        }
+        // If no message field, use the whole response
+        throw new Error(errorText);
+      } catch (parseError) {
+        console.log("JSON parse failed, using raw text:", errorText); // Debug log
+        // If JSON parsing fails, use the original error text
+        throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+      }
     }
 
     return response.json();
@@ -180,6 +219,49 @@ export const userAPI = {
     }
 
     return response.json();
+  },
+
+  toggleUserStatus: async (userId, isActive) => {
+    const token = localStorage.getItem("token");
+    const endpoint = isActive ? 'activate' : 'deactivate';
+
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/${endpoint}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      // Get response as text first (can only read response body once)
+      const errorText = await response.text();
+      console.error(`${endpoint} user error:`, response.status, errorText);
+      
+      // Try to parse the text as JSON to extract the message
+      try {
+        const errorData = JSON.parse(errorText);
+        console.log("Parsed error data:", errorData); // Debug log
+        
+        // If it's JSON with a message field, extract ONLY the message content
+        if (errorData && errorData.message) {
+          throw new Error(errorData.message);
+        }
+        // If no message field, use the whole response
+        throw new Error(errorText);
+      } catch (parseError) {
+        console.log("JSON parse failed, using raw text:", errorText); // Debug log
+        // If JSON parsing fails, use the original error text
+        throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+      }
+    }
+
+    // Handle successful response
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return response.json();
+    }
+    return { success: true };
   },
 
   getLoginHistory: async () => {
