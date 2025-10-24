@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function Sidebar({ activeSection, setActiveSection }) {
   const navigate = useNavigate();
@@ -95,6 +96,24 @@ export default function Sidebar({ activeSection, setActiveSection }) {
     }
   ];
 
+  // If logged in as StationOperator, limit visible items to a small subset
+  const role = user.role || user?.role;
+  const stationOperatorAllowed = ['payments', 'profile', 'settings', 'loginHistory'];
+  const visibleMenu = role === 'StationOperator'
+    ? menuItems.filter((m) => stationOperatorAllowed.includes(m.id))
+    : menuItems;
+
+  // Ensure activeSection is one of the visible items for this user
+  useEffect(() => {
+    if (!visibleMenu || visibleMenu.length === 0) return;
+    const ids = visibleMenu.map((m) => m.id);
+    if (!ids.includes(activeSection)) {
+      // Default to first visible item
+      setActiveSection(visibleMenu[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen shadow-2xl ev-sidebar w-72">
       {/* Header */}
@@ -119,7 +138,7 @@ export default function Sidebar({ activeSection, setActiveSection }) {
       {/* Navigation Menu */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {menuItems.map((item) => (
+          {visibleMenu.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => setActiveSection(item.id)}
