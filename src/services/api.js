@@ -50,7 +50,10 @@ export const authAPI = {
       role: userData.role || "StationOperator",
     };
 
-    return fetchWithCORS(`${API_BASE_URL}/auth/register`, {
+    // Allow a sensible default for local development if VITE_API_URL is not set
+    const base = API_BASE_URL || 'http://localhost:8080/api';
+
+    return fetchWithCORS(`http://localhost:8080/api/auth/register`, {
       method: "POST",
       body: JSON.stringify(payload),
     });
