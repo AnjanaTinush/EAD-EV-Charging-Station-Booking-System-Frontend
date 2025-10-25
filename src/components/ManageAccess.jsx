@@ -87,9 +87,14 @@ export default function ManageAccess() {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.nic.includes(searchTerm);
+    const term = searchTerm.trim().toLowerCase();
+
+    // Safely normalize fields that may be null/undefined before calling string methods
+    const username = (user.username || '').toLowerCase();
+    const email = (user.email || '').toLowerCase();
+    const nic = (user.nic || '').toLowerCase();
+
+    const matchesSearch = term === '' || username.includes(term) || email.includes(term) || nic.includes(term);
     const matchesRole = filterRole === 'All' || user.role === filterRole;
     const matchesStatus = filterStatus === 'All' || 
                          (filterStatus === 'Active' && user.isActive) ||
