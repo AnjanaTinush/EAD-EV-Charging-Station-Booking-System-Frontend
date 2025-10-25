@@ -34,7 +34,10 @@ export default function ManageAccess() {
     try {
       setLoading(true);
       const data = await userAPI.getAllUsers();
-      setUsers(data);
+
+      // API may return an array or an object like { users: [...] }
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.users) ? data.users : []);
+      setUsers(list);
     } catch (error) {
       console.error('Error fetching users:', error);
       showError('Failed to fetch users');
@@ -44,12 +47,14 @@ export default function ManageAccess() {
   };
 
   const calculateStats = () => {
-    const total = users.length;
-    const active = users.filter(user => user.isActive).length;
+    const list = Array.isArray(users) ? users : [];
+    const total = list.length;
+    const active = list.filter(user => user && user.isActive).length;
     const inactive = total - active;
-    
-    const byRole = users.reduce((acc, user) => {
-      acc[user.role] = (acc[user.role] || 0) + 1;
+
+    const byRole = list.reduce((acc, user) => {
+      const role = (user && user.role) || 'Unknown';
+      acc[role] = (acc[role] || 0) + 1;
       return acc;
     }, {});
 
@@ -86,19 +91,24 @@ export default function ManageAccess() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.nic.includes(searchTerm);
-    const matchesRole = filterRole === 'All' || user.role === filterRole;
+  const filteredUsers = (Array.isArray(users) ? users : []).filter(user => {
+    const term = searchTerm.trim().toLowerCase();
+
+    // Safely normalize fields that may be null/undefined before calling string methods
+    const username = (user && user.username) ? String(user.username).toLowerCase() : '';
+    const email = (user && user.email) ? String(user.email).toLowerCase() : '';
+    const nic = (user && user.nic) ? String(user.nic).toLowerCase() : '';
+
+    const matchesSearch = term === '' || username.includes(term) || email.includes(term) || nic.includes(term);
+    const matchesRole = filterRole === 'All' || ((user && user.role) === filterRole);
     const matchesStatus = filterStatus === 'All' || 
-                         (filterStatus === 'Active' && user.isActive) ||
-                         (filterStatus === 'Inactive' && !user.isActive);
-    
+                         (filterStatus === 'Active' && user && user.isActive) ||
+                         (filterStatus === 'Inactive' && user && !user.isActive);
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const roles = ['All', ...new Set(users.map(user => user.role))];
+  const roles = ['All', ...new Set((Array.isArray(users) ? users : []).map(user => (user && user.role) || 'Unknown'))];
 
   if (loading) {
     return (
