@@ -130,6 +130,20 @@ export default function UserManagement() {
     }
   };
 
+  // Get unique roles from users data for dynamic dropdown
+  const availableRoles = [...new Set(users.map(user => user.role))].sort();
+
+  // Helper function to format role names for display
+  const formatRoleName = (role) => {
+    const roleMap = {
+      'StationOperator': 'Station Operator',
+      'EvOwner': 'EV Owner',
+      'Backoffice': 'Backoffice',
+      'Customer': 'Customer'
+    };
+    return roleMap[role] || role;
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -199,9 +213,11 @@ export default function UserManagement() {
               className="ev-input w-full"
             >
               <option value="All">All Roles</option>
-              <option value="Backoffice">Backoffice</option>
-              <option value="StationOperator">Station Operator</option>
-              <option value="EvOwner">EV Owner</option>
+              {availableRoles.map(role => (
+                <option key={role} value={role}>
+                  {formatRoleName(role)}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -233,7 +249,7 @@ export default function UserManagement() {
                 <span className="ev-badge-info">Search: {searchTerm}</span>
               )}
               {roleFilter !== 'All' && (
-                <span className="ev-badge-info">Role: {roleFilter}</span>
+                <span className="ev-badge-info">Role: {formatRoleName(roleFilter)}</span>
               )}
             </div>
           )}
@@ -313,7 +329,7 @@ export default function UserManagement() {
                       <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      {user.role}
+                      {formatRoleName(user.role)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
